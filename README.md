@@ -8,3 +8,5 @@ its annoying but the items with a bonus_list can either be found on wowhead or f
 I don't think either of these could be fully automated like pulling data if only they supplied it from the api 
 This seems like I ahve to update it by hand.
 the wowhead page for an item does take a querystring with a bonusId which will return the correct variant of the item
+
+Provides functions that make requests to specific World of Warcraft API's. 
