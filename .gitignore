@@ -111,6 +111,7 @@ env.bak/
 venv.bak/
 Scripts/
 pyvenv.cfg
+get-wow-data-venv/
 
 # Spyder project settings
 .spyderproject
