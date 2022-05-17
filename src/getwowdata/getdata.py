@@ -1,6 +1,5 @@
 import os
 import requests
-from pprint import pprint
 
 #defaults
 region = 'us'
@@ -13,7 +12,7 @@ page_size = 1000
 page = 1
 connected_realm_id = 4
 profession_id = 164
-skill_tier_id = 24777
+skill_tier_id = 2477
 recipe_id = 1631
 item_class_id = 1
 item_id = 19019
@@ -100,11 +99,3 @@ def get_item_icon(item_id = item_id, region = region, namespace = static_namespa
 
 def get_wow_token(region = region, namespace = dynamic_namespace, locale = locale):
     return requests.get(wow_token_url, params={'namespace':namespace, 'locale':locale, 'access_token':access_token}, timeout=timeout)
-
-#exchange function name for debugging
-if __name__ == "__main__":
-    x = get_profession_tier_details()
-
-    print(x.url)
-    print(x.json())
-
