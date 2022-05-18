@@ -40,15 +40,24 @@ wow_token_url = f'https://{region}.api.blizzard.com/data/wow/token/index'
 tokenData = {'grant_type': 'client_credentials'}
 
 #Client ID, secret
-auth = (os.environ["wowApiId"], os.environ["wowApiSecret"])
-#auth = ('bad', 'cred')
+wow_api_id = None
+wow_api_secret = None
 
-def get_access_token(region = region, tokenData = tokenData, auth = auth):
-    return requests.post(access_token_url, data=tokenData, auth=auth, timeout=timeout)
-
-access_token_response = get_access_token()
-if access_token_response.status_code == requests.codes.ok:
-    access_token = access_token_response.json()['access_token']
+#gets the same access token across multiple requests
+#each access token lasts a day
+def get_access_token(region = region, tokenData = tokenData):
+    try:
+        auth = (os.environ["wow_api_id"], os.environ["wow_api_secret"])
+        requests.post(access_token_url, data=tokenData, auth=auth, timeout=timeout)
+        access_token_response = get_access_token()
+        if access_token_response.status_code == requests.codes.ok:
+            return  access_token_response.json()['access_token']
+    except(KeyError):
+        auth = (wow_api_id, wow_api_secret)
+        requests.post(access_token_url, data=tokenData, auth=auth, timeout=timeout)
+        access_token_response = get_access_token()
+        if access_token_response.status_code == requests.codes.ok:
+            return  access_token_response.json()['access_token']
 
 def get_connected_realm_index(region = region, namespace = dynamic_namespace, locale = locale):
     return requests.get(connected_realm_index_url, params={'namespace': namespace, 'locale': locale, 'access_token':access_token}, timeout=timeout)
@@ -99,3 +108,8 @@ def get_item_icon(item_id = item_id, region = region, namespace = static_namespa
 
 def get_wow_token(region = region, namespace = dynamic_namespace, locale = locale):
     return requests.get(wow_token_url, params={'namespace':namespace, 'locale':locale, 'access_token':access_token}, timeout=timeout)
+
+if __name__ == '__main__':
+    access_token_response = get_access_token()
+    if access_token_response.status_code == requests.codes.ok:
+        access_token = access_token_response.json()['access_token']
