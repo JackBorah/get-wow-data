@@ -3,7 +3,7 @@
 **getwowdata** makes it easier to pull data from Blizzard's World of Warcraft (WoW) API's.
 
 ```python
-import getwowdata
+from getwowdata import get_auctions
 
 #Don't publish your secret key! Set it as an environment variable (see setup)
 #Or for private use set the variables below in your script
@@ -11,7 +11,7 @@ wow_api_id = #your client id
 wow_api_secret = #your client secret
 access_token = get_access_token() #
 
-winterhoof_auctions = get_auctions(4) #4 is the connected-realm id for the winterhoof server
+winterhoof_auctions = get_auctions(access_token, connected_realm_id = 4) #4 is the connected-realm id for the winterhoof server
 winterhoof_auctions.json()['auctions'][0] #.json() pythonifies json into dictionaries and lists
 ```
 
