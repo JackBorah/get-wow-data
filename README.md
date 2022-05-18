@@ -65,7 +65,7 @@ This package is built with [requests](https://docs.python-requests.org/en/latest
 Example:
 Getting the value of all auctions on your server.
 ```python
-import getwowdata
+import getwowdata as gwd
 from pprint import pprint
 
 #optional
@@ -86,8 +86,8 @@ for item in winterhoof_auctions['auctions']:
         total_value += item['buyout']
 
 
-print(f"total_value")
-#4304233570700
+print(gwd.as_gold(total_value))
+#430,423,357g 07s 00c
 ```
 The href's in the json are links to related elements.
 
