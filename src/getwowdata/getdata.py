@@ -1,5 +1,6 @@
 import os
 import requests
+import pprint
 
 #defaults
 region = 'us'
@@ -35,6 +36,7 @@ item_set_index_url = f'https://{region}.api.blizzard.com/data/wow/item-set/index
 item_list_url = f'https://{region}.api.blizzard.com/data/wow/search/item'
 item_icon_url = f'https://{region}.api.blizzard.com/data/wow/media/item/{item_id}'
 wow_token_url = f'https://{region}.api.blizzard.com/data/wow/token/index'
+search_realm_url = f'https://{region}.api.blizzard.com/data/wow/search/connected-realm'
 
 #token data
 tokenData = {'grant_type': 'client_credentials'}
@@ -60,6 +62,19 @@ def get_access_token(region = region, tokenData = tokenData):
 
 if __name__ == '__main__':
     access_token = get_access_token()
+
+#I want users to be able to add as much detail to a query as they want.
+#This means taking an arbitary length of kwargs and putting that into params.
+#How? Well params is a dictionary. So each function should build a dictionary from the parameters passed in.
+#Can't pass realm.slug = x as '.' is not a valid pytohn itentifier character.
+#Alternate solution: store the
+def search_realm(access_token, namespace = dynamic_namespace, region = region, **extra_params):
+    params = {**{'namespace': namespace, 'access_token':access_token}, **extra_params}
+    return requests.get(search_realm_url, params=params)
+
+x = search_realm(access_token, **{'realms.slug': 'stormrage'})
+print(x.url)
+print(x.json())
 
 def get_connected_realm_index(access_token, region = region, namespace = dynamic_namespace, locale = locale):
     return requests.get(connected_realm_index_url, params={'namespace': namespace, 'locale': locale, 'access_token':access_token}, timeout=timeout)

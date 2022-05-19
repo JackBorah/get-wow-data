@@ -18,28 +18,29 @@ winterhoof_auctions.json()['auctions'][0] #.json() pythonifies json into diction
 
 
 ## Table of Contents
-- [Installing](#Installing)
 - [Features](#Features)
+- [Installing](#Installing)
 - [Setup](#Setup)
-- [How to use](#How-to-use)
+- [API](#API)
 - [Notes on the data](#Notes-on-the-data)
 - [Cheatsheet](#Cheatsheet)
 - [Feedback](#Feedback)
 - [License](#License)
+
+## Features
+Currently only a subset of the available APIs can be pulled from.
+- get an access token
+- get realms and connected realms APIs
+- get profession APIs
+- get item APIs
+- get auction house API
+- get wow token API
 
 ## Installing
 Getwowdata is avilable on PyPi:
 ```console
 $ python -m pip install getwowdata
 ```
-## Features
-Currently only a subset of the available APIs can be pulled from.
-- get an access token
-- realms and connected realms APIs
-- profession APIs
-- item APIs
-- auction house API
-- wow token API
 ## Setup
 1. Go to [https://develop.battle.net/](https://develop.battle.net/)
 2. Click on Get started and login. 
@@ -59,14 +60,13 @@ Check out [How to use](#how-to-use) to see how you can use your Client Id and Cl
 
 **Remember not to commit your wow_api_secret!** You can set wow_api_id and wow_api_secret as environment variables and **getwowdata** will read these credentials from there.
 
-## How to use
-This package is built with [requests](https://docs.python-requests.org/en/latest/) so methods like .json(), .text, .url, etc. all work with the results of get_x(). See [requests](https://docs.python-requests.org/en/latest/) for more info on what you can do.  
+## API
+This package is built with [requests](https://docs.python-requests.org/en/latest/) so methods like .json(), .text, .url, etc. all work with the results of get_x(). See [requests](https://docs.python-requests.org/en/latest/) for more info on what you can do with responses.  
 
 Example:
 Getting the value of all auctions on your server.
 ```python
 import getwowdata as gwd
-from pprint import pprint
 
 #optional
 wow_api_id = #your client id
@@ -78,7 +78,7 @@ access_token = gwd.get_access_token()
 
 winterhoof_auctions = gwd.get_auctions(access_token, connected_realm_id = 4) #4 is the connected-realm id for the winterhoof server
 winterhoof_auctions = winterhoof_auctions.json() #.json() pythonifies json into dictionaries and lists
-#pprint(winterhoof_auctions['auctions'][0]) #pprint prints json in a legible format
+
 for item in winterhoof_auctions['auctions']:
     try:
         total_value += item['unit_price']
@@ -89,8 +89,53 @@ for item in winterhoof_auctions['auctions']:
 print(gwd.as_gold(total_value))
 #430,423,357g 07s 00c
 ```
-The href's in the json are links to related elements.
-
+#### Gets
+```python
+get_connected_realm_index()
+```
+Realms that are connected share a single connected realm id. This returns a list of those id's and a link to their associated realms.
+```python
+get_realm()
+```
+```python
+get_auctions()
+```
+```python
+get_profession_index()
+```
+```python
+get_profession_tiers()
+```
+```python
+get_profession_icon()
+```
+```python
+get_profession_tier_details()
+```
+```python
+get_recipe_details()
+```
+```python
+get_recipe_icon()
+```
+```python
+get_item_classes()
+```
+```python
+get_item_subclasses()
+```
+```python
+get_item_set_index()
+```
+```python
+get_item_list()
+```
+```python
+get_item_icon()
+```
+```python
+get_wow_token()
+```
 
 #### Reading json
 Using a normal print() on response.json() outputs gibberish.
@@ -98,6 +143,8 @@ I recommend either the pprint module or viewing the json from [this list](https:
 
 
 ## Notes on the data
+#### Href's
+The href's in the json are links to related elements and th first one in a query is the url which made the query.
 #### Prices
 The prices some item is in the following format g*sscc, where g = gold, s = silver, c = copper. 
 Silver and copper are fixed in the last 4 decimal spaces whlie gold can be as any number of spaces before silver. So 25289400 is 2528g 94s 00c.
@@ -110,7 +157,7 @@ The items with a bonus_list can either be found on wowhead or found in an opaque
 
 I will make some solution for this even if its just another cheatsheet with a list of bonus id's and their effects. 
 #### Item context
-Where the item was created. 
+Where the item was created. Incomplete list
 | Context 	| Value          	|
 |---------	|----------------	|
 | 1       	| Normal Dungeon 	|
@@ -122,7 +169,7 @@ Where the item was created.
 Modifier type 9 tells the players level when item was looted
 ####
 ## Parameter Cheatsheet
-
+Incomplete list
 | Region 	| Namespace        	| locale (language) 	|
 |--------	|------------------	|-------------------	|
 | us     	| static-{region}  	| en_US             	|
