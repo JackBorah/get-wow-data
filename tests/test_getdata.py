@@ -16,10 +16,17 @@ class TestEnvironmentVariables(unittest.TestCase):
         except KeyError:
             self.fail("Blizzard API secret not set as environment variable")
 
-class TestGetFunctions(unittest.TestCase):
+class TestQueryFunctions(unittest.TestCase):
     access_token = getwowdata.get_access_token()
     
-    def test__connected_realm_index_ok(self):
+    def test_search_ok(self):
+        try:
+            response = getwowdata.get_connected_realm_index(self.access_token)
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            self.fail(f"{response.status_code} status code returned from search function")
+
+    def test_connected_realm_index_ok(self):
         try:
             response = getwowdata.get_connected_realm_index(self.access_token)
             response.raise_for_status()
