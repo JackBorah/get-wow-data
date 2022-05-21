@@ -15,8 +15,8 @@ class TestEnvironmentVariables(unittest.TestCase):
             os.environ["wow_api_secret"]
         except KeyError:
             self.fail("Blizzard API secret not set as environment variable")
-
-class TestQueryFunctions(unittest.TestCase):
+#TODO make requests.get to each url from getwowdata.urls
+class TestWoWUrls(unittest.TestCase):
     access_token = getwowdata.get_access_token()
     
     def test_search_ok(self):
