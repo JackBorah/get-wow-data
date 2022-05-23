@@ -2,9 +2,9 @@
 
 Typical usage example:
 
-access_token = get_access_token() 
+access_token = get_access_token()
 
-winterhoof_auctions = get_auctions(access_token, connected_realm_id = 4) 
+winterhoof_auctions = get_auctions(access_token, connected_realm_id = 4)
 winterhoof_auctions.json()['auctions']
 
 Copyright (c) 2022 JackBorah
@@ -12,385 +12,590 @@ MIT License see LICENSE for more details
 """
 
 import os
-import requests
 import re
+import requests
+from . import exceptions
 
-#defaults
-region = 'us'
-locale = 'en_US'
-order_by = 'id'
-id_start = 1
-page_size = 1000
-page = 1
-connected_realm_id = 4
-profession_id = 164
-skill_tier_id = 2477
-recipe_id = 1631
-item_class_id = 1
-item_id = 19019
-timeout = 1 #seconds
 
-#urls
-urls = {
-'access_token': f'https://{region}.battle.net/oauth/token',
-'connected_realm_index': f'https://{region}.api.blizzard.com/data/wow/connected-realm/index',
-'realm' : f'https://{region}.api.blizzard.com/data/wow/connected-realm/{connected_realm_id}',
-'auction' : f'https://{region}.api.blizzard.com/data/wow/connected-realm/{connected_realm_id}/auctions',
-'profession_index' : f'https://{region}.api.blizzard.com/data/wow/profession/index',
-'profession_skill_tier' : f'https://{region}.api.blizzard.com/data/wow/profession/{profession_id}',
-'profession_tier_detail' : f'https://{region}.api.blizzard.com/data/wow/profession/{profession_id}/skill-tier/{skill_tier_id}',
-'profession_icon' : f'https://{region}.api.blizzard.com/data/wow/media/profession/{profession_id}',
-'recipe_detail' : f'https://{region}.api.blizzard.com/data/wow/recipe/{recipe_id}',
-'repice_icon' : f'https://{region}.api.blizzard.com/data/wow/media/recipe/{recipe_id}',
-'item_classes' : f'https://{region}.api.blizzard.com/data/wow/item-class/index',
-'item_subclass' : f'https://{region}.api.blizzard.com/data/wow/item-class/{item_class_id}',
-'item_set_index' : f'https://{region}.api.blizzard.com/data/wow/item-set/index?',
-'item_icon' : f'https://{region}.api.blizzard.com/data/wow/media/item/{item_id}',
-'wow_token' : f'https://{region}.api.blizzard.com/data/wow/token/index',
-'search_realm' : f'https://{region}.api.blizzard.com/data/wow/search/connected-realm',
-'search_item' : f'https://{region}.api.blizzard.com/data/wow/search/item',
-'search_media': f'https://{region}.api.blizzard.com/data/wow/search/media'
-}
+class GetWowData:
 
-def get_access_token(region: str, wow_api_id: str = None, wow_api_secret: str = None, timeout: int = 30) -> str:
-    """Returns an access token.
+    urls = {
+        "access_token": "https://{region}.battle.net/oauth/token",
+        "connected_realm_index": "https://{region}.api.blizzard.com/data/wow/connected-realm/index",
+        "realm": "https://{region}.api.blizzard.com/data/wow/connected-realm/{connected_realm_id}",
+        "auction": "https://{region}.api.blizzard.com/data/wow/connected-realm/{connected_realm_id}/auctions",
+        "profession_index": "https://{region}.api.blizzard.com/data/wow/profession/index",
+        "profession_skill_tier": "https://{region}.api.blizzard.com/data/wow/profession/{profession_id}",
+        "profession_tier_detail": "https://{region}.api.blizzard.com/data/wow/profession/{profession_id}/skill-tier/{skill_tier_id}",
+        "profession_icon": "https://{region}.api.blizzard.com/data/wow/media/profession/{profession_id}",
+        "recipe_detail": "https://{region}.api.blizzard.com/data/wow/recipe/{recipe_id}",
+        "repice_icon": "https://{region}.api.blizzard.com/data/wow/media/recipe/{recipe_id}",
+        "item_classes": "https://{region}.api.blizzard.com/data/wow/item-class/index",
+        "item_subclass": "https://{region}.api.blizzard.com/data/wow/item-class/{item_class_id}",
+        "item_set_index": "https://{region}.api.blizzard.com/data/wow/item-set/index?",
+        "item_icon": "https://{region}.api.blizzard.com/data/wow/media/item/{item_id}",
+        "wow_token": "https://{region}.api.blizzard.com/data/wow/token/index",
+        "search_realm": "https://{region}.api.blizzard.com/data/wow/search/connected-realm",
+        "search_item": "https://{region}.api.blizzard.com/data/wow/search/item",
+        "search_media": "https://{region}.api.blizzard.com/data/wow/search/media",
+    }
 
-    Requires wow_api_id and wow_api_secret to be set as environment variables or
-    passed in. Remember not to expose your secret publicly. Each token expires after a day.
-    Subsequent get_access_token calls returns the same token until it expires. 
+    def __init__(
+        self,
+        region: str,
+        locale: str = None,
+        wow_api_id: str = None,
+        wow_api_secret: str = None,
+    ):
+        """Sets the access_token and region attributes.
 
-    Args:
-        region (str): Example: 'us'. Access tokens will work for all other regions except 'cn' (China).
-        wow_api_id (str, optional): Your client id from https://develop.battle.net/. Ignore if id is set as environment variable.
-        wow_api_secret (str, optional): Your client secret from https://develop.battle.net/. Ignore if secret is set as environment variable.
+        Args:
+            region (str): Example: 'us'. Should be lowercase. Access tokens will
+                work for all other regions except 'cn' (China).
+            locale (str): Example: 'en_US'. The language that data will be returned in.
+                Default = None which returns the data in all supported languages.
+                See https://develop.battle.net/documentation/world-of-warcraft/guides/localization.
+            wow_api_id (str, optional): Your client id from https://develop.battle.net/.
+                Ignore if id is set as environment variable.
+            wow_api_secret (str, optional): Your client secret from https://develop.battle.net/.
+                Ignore if secret is set as environment variable.
+        """
+        self.region = region
+        self.locale = locale
+        self.access_token = self.get_access_token(wow_api_id, wow_api_secret)
 
-    Returns:
-        The access token as a string.
-    """
-    tokenData = {'grant_type': 'client_credentials'}
-    try:
-        auth = (os.environ["wow_api_id"], os.environ["wow_api_secret"])
-        access_token_response = requests.post(urls['access_token'], data=tokenData, auth=auth, timeout=timeout)
-        if access_token_response.status_code == requests.codes.ok:
-            return  access_token_response.json()['access_token']
-    except(KeyError):
-        auth = (wow_api_id, wow_api_secret)
-        access_token_response = requests.post(urls['access_token'], data=tokenData, auth=auth, timeout=timeout)
-        if access_token_response.status_code == requests.codes.ok:
-            return  access_token_response.json()['access_token']
+    def get_access_token(
+        self,
+        wow_api_id: str = None,
+        wow_api_secret: str = None,
+        timeout: int = 30,
+    ) -> str:
+        """Returns an access token.
 
-def connected_realm_search(access_token: str , region: str, **extra_params: dict) -> dict:
-    """Uses the connected realms API's search functionaly for more specific queries.
+        Requires wow_api_id and wow_api_secret to be set as environment variables or
+        passed in. Remember not to expose your secret publicly. Each token expires
+        after a day. Subsequent get_access_token calls returns the same token until
+        it expires.
 
-    Searches can filter by fields returned from the API. Ex: filerting realms by slug == illidan. 
-    Below is the data returned from a regular realm query.
-    {
+        Args:
+            wow_api_id (str, optional): Your client id from https://develop.battle.net/.
+                Ignore if id is set as environment variable.
+            wow_api_secret (str, optional): Your client secret from https://develop.battle.net/.
+                Ignore if secret is set as environment variable.
+            timeout (int): How long (in seconds) until the request to the API timesout
+                Default = 30 seconds.
+
+        Returns:
+            The access token as a string.
+
+        Raises:
+            NameError: If wow_api_id and/or wow_api_secret is not set as
+                environment variable or passed in.
+            requests.exceptions.HTTPError: If status code 4XX or 5XX.
+            exceptions.JSONChangedError: If 'access_token' was not found in
+                access_token_response.json()['access_token'].
+        """
+
+        token_data = {"grant_type": "client_credentials"}
+        self.region = self.region
+
+        try:
+            auth = (os.environ["wow_api_id"], os.environ["wow_api_secret"])
+            access_token_response = requests.post(
+                self.urls["access_token"].format(region=self.region),
+                data=token_data,
+                auth=auth,
+                timeout=timeout,
+            )
+            access_token_response.raise_for_status()
+            try:
+                return access_token_response.json()["access_token"]
+            except KeyError:
+                raise exceptions.JSONChangedError(
+                    "access_token not found in access_token_response."
+                    "The repsonse's format may have changed."
+                ) from KeyError
+
+        except KeyError:
+            if wow_api_id is None or wow_api_secret is None:
+                raise NameError(
+                    "No wow_api_id or wow_api_secret was found."
+                    "Set them as environment variables or "
+                    "pass into get_access_token."
+                ) from KeyError
+
+            auth = (wow_api_id, wow_api_secret)
+            access_token_response = requests.post(
+                self.urls["access_token"].format(region=self.region),
+                data=token_data,
+                auth=auth,
+                timeout=timeout,
+            )
+            access_token_response.raise_for_status()
+            try:
+                return access_token_response.json()["access_token"]
+            except KeyError:
+                raise exceptions.JSONChangedError(
+                    "access_token not found in access_token_response."
+                    "The repsonse's format may have changed."
+                ) from KeyError
+
+    def connected_realm_search(self, **extra_params: dict) -> dict:
+        """Uses the connected realms API's search functionaly for more specific queries.
+
+        Searches can filter by fields returned from the API.
+        Ex: filerting realms by slug == illidan.
+        Below is the data returned from a regular realm query.
+        {
+            "page": 1,
+            "pageSize": 58,
+            "maxPageSize": 100,
+            "pageCount": 1,
+            "results": [
+            {
+                ...
+            },
+            "data": {
+                "realms": {
+                    ...
+                    "slug":"illidan"
+                }
+        To only return the realm with the slug == illidan pass
+        {'data.realms.slug':'illidan'} into **extra_params.
+        See https://develop.battle.net/documentation/world-of-warcraft/guides/search
+        for more details on search.
+
+        Args:
+            **extra_params (int/str, optional): Returned data can be filtered
+                by any of its fields. Useful parameters are listed below.
+                Parameters must be sent as a dictionary where keys are str and
+                values are str or int like {'_page': 1, 'realms.slug':'illidan', ...}
+            **timeout (int): How long (in seconds) until the request to the API timesout
+                Default = 30 seconds.
+            **_pagesize (int, optional): Number of entries in a result page.
+                Default = 100, min = 1, max = 1000.
+            **_page (int, optional): The page number that will be returned.
+                Default = 1.
+            **orderby (str, optional): Accepts a comma seperated field of elements to sort by.
+                See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
+            **data.realms.slug (str, optional): All realm slugs must be lowercase with spaces
+                converted to dashes (-)
+
+        Returns:
+        A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        try:
+            timeout = extra_params.pop("timeout", 30)
+        except KeyError:
+            timeout = 30
+
+        params = {
+            **{
+                "namespace": f"dynamic-{self.region}",
+                "access_token": self.access_token,
+                "locale": self.locale,
+            },
+            **extra_params,
+        }
+
+        response = requests.get(
+            self.urls["search_realm"].format(region=self.region),
+            params=params,
+            timeout=timeout,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def item_search(self, **extra_params: dict) -> dict:
+        """Uses the items API's search functionality to make more specific queries.
+
+        Ex: Filter by required level and name
+        {
         "page": 1,
-        "pageSize": 58,
+        "pageSize": 3,
         "maxPageSize": 100,
         "pageCount": 1,
         "results": [
-        {
-            ...
-        },
-        "data": {
-            "realms": { 
+            {
                 ...
-                "slug":"illidan"
+            },
+            "data": {
+                "level": 35,
+                "required_level": 30,
+            ...
+                ...
+                name.en_US: Garrosh
+        Pass {"required_level": 30, "name.en_US: "Garrosh"} into **extra_params
+        Additional parameters must be sent as a dictionary where the keys strings and
+        values are strings or ints.
+
+        Args:
+            **extra_params (int/str, optional): Returned data can be filtered by any
+                of its fields. Useful parameters are listed below.
+                Ex: {'data.required_level':35} will only return items where required_level == 35
+            **timeout (int): How long (in seconds) until the request to the API timesout
+                Default = 30 seconds.
+            **_pagesize (int, optional): Number of entries in a result page.
+                Default = 100, min = 1, max = 1000.
+            **_page (int, optional): The page number that will be returned.
+                Default = 1.
+            **orderby (str, optional): Accepts a comma seperated field of elements to sort by.
+                See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
+            **id (int, optional): An item's id. Enter in the following format
+                {'id': '(id_start, id_end)'} to specify a set of id's.
+                See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
+
+        Returns:
+        A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        try:
+            timeout = extra_params.pop("timeout", 30)
+        except KeyError:
+            timeout = 30
+
+        params = {
+            **{
+                "namespace": f"static-{self.region}",
+                "access_token": self.access_token,
+                "locale": self.locale,
             }
-    To only return the realm with the slug == illidan pass {'data.realms.slug':'illidan'} into **extra_params.
-    See https://develop.battle.net/documentation/world-of-warcraft/guides/search for more details on search.
-    Additional parameters must be sent as a dictionary where keys are str and values are str or int like {'_page': 1, 'realms.slug':'illidan', ...} 
+            ** extra_params
+        }
 
-    Args:
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        **extra_params (int/str, optional): Returned data can be filtered by any of its fields. Useful parameters are listed below.
-            Ex: {'realm.slug':'illidan'} will only return data with where realm.slug = illidan
-        **timeout (int): How long until the request to the API timesout in seconds
-        **_pagesize (int, optional): Number of entries in a result page
-        **_page (int, optional): The page number that will be returned
-        **orderby (str, optional): Accepts a comma seperated field of elements to sort by. See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
-        **data.realms.slug (str, optional): Specify the exact name of the realm to to filter by it
+        response = requests.get(
+            self.urls["search_item"].format(region=self.region),
+            params=params,
+            timeout=timeout,
+        )
+        return response.json()
 
-    Returns:
-       A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    try:
-        timeout = extra_params.pop('timeout', 30)
-    except(KeyError):
-        timeout = 30
+    def get_connected_realms_by_id(
+        self, connected_realm_id: int, timeout: int = 30
+    ) -> dict:
+        """Gets all the realms that share a connected_realm id.
 
-    params = {**{'namespace': 'dynamic-us', 'access_token':access_token}, **extra_params}
+        Args:
+            connected_realm_id (int): The connected realm id. Get from connected_realm_index().
+            timeout (int): How long (in seconds) until the request to the API timesout
+                Default = 30 seconds.
 
-    response = requests.get(urls['search_realm'], params=params, timeout=timeout)
-    print(response.url)
-    #return response.json()
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        params = {
+            "namespace": f"dynamic-{self.region}",
+            "locale": self.locale,
+            "access_token": self.access_token,
+        }
+        return requests.get(
+            self.urls["realm"].format(
+                self.region, connected_realm_id=connected_realm_id
+            ),
+            params=params,
+            timeout=timeout,
+        ).json()
 
-def item_search(access_token: str , region: str, **extra_params: dict) -> dict:
-    """Uses the items API's search functionality to make more specific queries.
+    def get_auctions(self, connected_realm_id, timeout=30) -> dict:
+        """Gets all auctions from a realm by its connected_realm_id.
 
-    Ex: Filter by required level and name
-    {
-    "page": 1,
-    "pageSize": 3,
-    "maxPageSize": 100,
-    "pageCount": 1,
-    "results": [
-        {
-            ...
-        },
-        "data": {
-            "level": 35,
-            "required_level": 30,
-        ...
-            ...
-            name.en_US: Garrosh
-    Pass {"required_level": 30, "name.en_US: "Garrosh"} into **extra_params
-    Additional parameters must be sent as a dictionary where the keys strings and values are strings or ints. 
+        Args:
+            connected_realm_id (int): The connected realm id.
+                Get from connected_realm_index() or use connected_realm_search().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        api (str): The api that will be searched. See searchable apis in README or at https://develop.battle.net/documentation/world-of-warcraft/guides/search.
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        timeout (int): How long until the request to the API timesout in seconds
-        **extra_params (int/str, optional): Returned data can be filtered by any of its fields. Useful parameters are listed below.
-            Ex: 'data.required_level':35 will only return items where required_level == 35
-        **_pagesize (int, optional): Number of entries in a result page
-        **_page (int, optional): The page number that will be returned
-        **orderby (str, optional): Accepts a comma seperated field of elements to sort by. See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
-        **id (int, optional): An items id. Enter in the following format {'id': '(id_start, id_end)'} to specify a set of id's.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        params = {
+            "namespace": f"dynamic-{self.region}",
+            "locale": self.locale,
+            "access_token": self.access_token,
+        }
+        return requests.get(
+            self.urls["auction"].format(
+                region=self.region, connected_realm_id=connected_realm_id
+            ),
+            params=params,
+            imeout=timeout,
+        ).json()
 
-    Returns:
-       A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    try:
-        timeout = extra_params.pop('timeout', 30)
-    except(KeyError):
-        timeout = 30
+    def get_profession_index(self, timeout=30) -> dict:
+        """Gets all professions including their names and ids.
 
-    params = {**{'namespace': 'static-us', 'access_token':access_token}, **extra_params}
+        Args:
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    response = requests.get(urls['search_item'], params=params, timeout=timeout)
-    return response.json()
 
-def get_connected_realms_by_id(connected_realm_id, access_token, region, locale, timeout = 30) -> dict:
-    """Gets connected realms by their shared connected_realm_id.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        params = {
+            "namespace": f"static-{self.region}",
+            "locale": self.locale,
+            "access_token": self.access_token,
+        }
+        return requests.get(
+            self.urls["profession_index"].format(region=self.region),
+            params=params,
+            timeout=timeout,
+        ).json()
 
-    Args:
-        connected_realm_id (int): The connected realm id. Get from connected_realm_index() or from cheatsheets in README.
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds
+    # Includes skill tiers (classic, burning crusade, shadowlands, ...) id
+    def get_profession_tiers(self, profession_id, timeout=30) -> dict:
+        """Returns all profession teirs from a profession.
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['realm'], params={'namespace': f'dynamic-{region}', 'locale': locale, 'access_token':access_token}, timeout=timeout).json() 
+        A profession teir includes all the recipes from that expansion.
+        Teir examples are classic, tbc, shadowlands, ...
 
-def get_auctions(connected_realm_id, access_token, region, locale, timeout = 30) -> dict:
-    """Gets all auctions from a realm by its connected_realm_id.
+        Args:
+            profession_id (int): The profession's id. Found in get_profession_index().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        connected_realm_id (int): The connected realm id. Get from connected_realm_index() or from cheatsheets in README.
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        params = {
+            "namespace": f"static-{self.region}",
+            "locale": self.locale,
+            "access_token": self.access_token,
+        }
+        return requests.get(
+            self.urls["profession_skill_tier"].format(
+                region=self.region, profession_id=profession_id
+            ),
+            params=params,
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['auction'], params={'namespace': f'dynamic-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    def get_profession_icon(self, profession_id, timeout=30) -> dict:
+        """Returns a profession's icon.
 
-def get_profession_index(access_token, region, locale, timeout = 30) -> dict:
-    """Gets all professions including their names and ids.
+        Args:
+            profession_id (int): The profession's id. Found in get_profession_index().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        params = {
+            "namespace": f"static-{self.region}",
+            "locale": self.locale,
+            "access_token": self.access_token,
+        }
+        return requests.get(
+            self.urls["profession_icon"].format(
+                region=self.region, profession_id=profession_id
+            ),
+            params=params,
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['profession_index'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    # Includes the categories (weapon mods, belts, ...) and the recipes (id, name) in them
+    def get_profession_tier_recipes(
+        self, profession_id, skill_tier_id, timeout=30
+    ) -> dict:
+        """Returns all crafts from a skill teir.
 
-#Includes skill tiers (classic, burning crusade, shadowlands, ...) id
-def get_profession_tiers(profession_id, access_token, region, locale, timeout = 30) -> dict:
-    """Returns all profession teirs (classic, shadowlands, ...) from a profession by its profession_id.
+        Args:
+            profession_id (int): The profession's id. Found in get_profession_index().
+            skill_tier_id (int): The skill teir id. Found in get_profession_teirs().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        profession_id (int): The profession's id. Found in get_profession_index() or from cheatsheets in README.
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        params = {
+            "namespace": f"static-{self.region}",
+            "locale": self.locale,
+            "access_token": self.access_token,
+        }
+        return requests.get(
+            self.urls["profession_tier_detail"].format(
+                region=self.region,
+                profession_id=profession_id,
+                skill_tier_id=skill_tier_id,
+            ),
+            params=params,
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['profession_skill_tier'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    def get_recipe(self, recipe_id, timeout=30) -> dict:
+        """Returns a recipes details by its id.
 
-def get_profession_icon(profession_id, access_token, region, locale, timeout = 30) -> dict:
-    """Returns a profession's icon. 
+        Args:
+            recipe_id (int): The recipe's id. Found in get_profession_tier_details().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        profession_id (int): The profession's id. Found in get_profession_index() or from cheatsheets in README.
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        return requests.get(
+            self.urls["recipe_detail"].format(region=self.region, recipe_id=recipe_id),
+            params={
+                "namespace": f"static-{self.region}",
+                "locale": self.locale,
+                "access_token": self.access_token,
+            },
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['profession_icon'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    def get_recipe_icon(self, recipe_id, timeout=30) -> dict:
+        """Returns a recipes icon.
 
-#Includes the categories (weapon mods, belts, ...) and the recipes (id, name) in them
-def get_profession_tier_recipes(profession_id, skill_tier_id, access_token, region, locale, timeout = 30) -> dict:
-    """Returns all crafts from a skill teir.
+        Args:
+            recipe_id (int): The recipe's id. Found in get_profession_tier_details().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        profession_id (int): The profession's id. Found in get_profession_index() or from cheatsheets in README.
-        skill_tier_id (int): The skill teir id. Found in get_profession_teirs().
-        access_token (str): Returned from get_access_token().
-        region (str): Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        return requests.get(
+            self.urls["repice_icon"].format(region=self.region, recipe_id=recipe_id),
+            params={
+                "namespace": f"static-{self.region}",
+                "locale": self.locale,
+                "access_token": self.access_token,
+            },
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['profession_tier_detail'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    def get_item_classes(self, timeout=30) -> dict:
+        """Returns all item classes (consumable, container, weapon, ...).
 
-def get_recipe(recipe_id, access_token, region, locale, timeout = 30) -> dict:
-    """Returns a recipes details by its id.
+        Args:
+            access_token (str): Returned from get_access_token().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        recipe_id (int): The recipe's id. Found in get_profession_tier_details().
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        return requests.get(
+            self.urls["item_classes"].format(region=self.region),
+            params={
+                "namespace": f"static-{self.region}",
+                "locale": self.locale,
+                "access_token": self.access_token,
+            },
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['recipe_detail'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    # flasks, vantus runes, ...
+    def get_item_subclasses(self, item_class_id, timeout=30) -> dict:
+        """Returns all item subclasses (class: consumable, subclass: potion, elixir, ...).
 
-def get_recipe_icon(recipe_id, access_token, region, locale, timeout = 30) -> dict:
-    """Returns a recipes icon.
+        Args:
+            item_class_id (int): Item class id. Found with get_item_classes().
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        recipe_id (int): The recipe's id. Found in get_profession_tier_details().
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        return requests.get(
+            self.urls["item_subclass"].format(
+                region=self.region, item_class_id=item_class_id
+            ),
+            params={
+                "namespace": f"static-{self.region}",
+                "locale": self.locale,
+                "access_token": self.access_token,
+            },
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['repice_icon'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    def get_item_set_index(self, timeout=30) -> dict:
+        """Returns all item sets. Ex: teir sets
 
-def get_item_classes(access_token, region, locale, timeout = 30) -> dict:
-    """Returns all item classes (consumable, container, weapon, ...).
+        Args:
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        return requests.get(
+            self.urls["item_set_index"].format(region=self.region),
+            params={
+                "namespace": f"static-{self.region}",
+                "locale": self.locale,
+                "access_token": self.access_token,
+            },
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['item_classes'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    def get_item_icon(self, item_id, timeout=30) -> dict:
+        """Returns the icon for an item.
 
-#flasks, vantus runes, ...
-def get_item_subclasses(item_class_id, access_token, region, locale, timeout = 30) -> dict:
-    """Returns all item subclasses (class: consumable, subclass: potion, elixir, ...).
+        Args:
+            item_id (int): The items id. Get from search() with api = item.
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        item_class_id (int): Item class id. Found with get_item_classes().
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        return requests.get(
+            self.urls["item_icon"].format(region=self.region, item_id=item_id),
+            params={
+                "namespace": f"static-{self.region}",
+                "locale": self.locale,
+                "access_token": self.access_token,
+            },
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['item_subclass'], params={'namespace': f'static-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
+    def get_wow_token(self, timeout=30) -> dict:
+        """Returns the price of the wow token and the timestamp of its last update.
 
-def get_item_set_index(access_token, region, locale, timeout = 30) -> dict:
-    """Returns all item sets. Ex: teir sets
+        Args:
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A json looking dict with nested dicts and/or lists containing data from the API.
+        """
+        return requests.get(
+            self.urls["wow_token"].format(region=self.region),
+            params={
+                "namespace": f"dynamic-{self.region}",
+                "locale": self.locale,
+                "access_token": self.access_token,
+            },
+            timeout=timeout,
+        ).json()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['item_set_index'], params={'namespace': f'static-{region}', 'locale':locale,'access_token':access_token}, timeout=timeout).json()
+    def get_connected_realm_index(self, timeout=30) -> dict:
+        """Returns a dict where {key = Realm name: value = connected realm id}
 
-def get_item_icon(item_id, access_token, region, locale, timeout = 30) -> dict:
-    """Returns the icon for an item.
+        Args:
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
 
-    Args:
-        item_id (int): The items id. Get from search() with api = item.
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+        Returns:
+            A dict where {realm_name: connected_realm_id}
+        """
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['item_icon'], params={'namespace':f'static-{region}', 'locale':locale,'access_token':access_token}, timeout=timeout).json()
+        index = {}
+        id_pattern = re.compile(r"[\d]+")
 
-def get_wow_token(access_token, region, locale, timeout = 30) -> dict:
-    """Returns the price of the wow token and the timestamp of its last update.
+        response_index = self.connected_realm_search(timeout=timeout)
+        for realms in response_index["connected_realms"]:
+            realms_response = requests.get(
+                realms["href"],
+                params={"access_token": self.access_token, "locale": self.locale},
+                timeout=timeout,
+            ).json()
 
-    Args:
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
+            for realm in realms_response["realms"]:
+                connected_realm_id = id_pattern.search(realm["connected_realm"]["href"])
+                index[realm["name"]] = connected_realm_id.group()
 
-    Returns:
-        A json looking dict with nested dicts and/or lists. See README for common usage.
-    """
-    return requests.get(urls['wow_token'], params={'namespace':f'dynamic-{region}', 'locale':locale, 'access_token':access_token}, timeout=timeout).json()
-
-def get_connected_realm_index(access_token, region, locale, timeout = 30) -> dict:
-    """Returns a dict where {key = Realm name: value = connected realm id}
-
-    Args:
-        access_token (str): Returned from get_access_token().
-        region (str): Example: 'us'. Determines which region you'll get data from. See cheatsheet in README or https://develop.battle.net/documentation/guides/regionality-and-apis.
-        locale (str): The language that a resource will be returned in. If Null all translations will be returned. See https://develop.battle.net/documentation/world-of-warcraft/guides/localization
-        timeout (int): How long until the request to the API timesout in seconds.
-
-    Returns:
-        A dict where {realm_name: connected_realm_id}
-    """
-
-    index = {}
-    id_pattern = re.compile('[\d]+')
-    
-    response_index = connected_realm_search(access_token, 'us').json
-    for realms in response_index["connected_realms"]:
-        realms_response = requests.get(realms['href'], params={'access_token':access_token, 'locale':locale}).json()
-
-        for realm in realms_response['realms']:
-            connected_realm_id = id_pattern.search(realm['connected_realm']['href'])
-            index[realm['name']] = connected_realm_id.group()
-    
-    return index
+        return index
