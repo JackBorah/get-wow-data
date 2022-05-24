@@ -18,6 +18,17 @@ from . import exceptions
 
 
 class GetWowData:
+    """Creates an object with access_key, region, and, optionally, locale attributes.
+
+    Attributes:
+        region (str): Ex: 'us'. The region where the data will come from.
+            See https://develop.battle.net/documentation/world-of-warcraft/guides/namespaces.
+        locale (str): Ex: 'en_US'. The language data will be returned in.
+            See https://develop.battle.net/documentation/world-of-warcraft/guides/localization.
+        access_token (str): Required to query Blizzard APIs. See Setup in readme or
+            visit https://develop.battle.net/ and click get started now.
+        urls (dict): A collection of urls that will be queried by this classes' methods.
+    """
 
     urls = {
         "access_token": "https://{region}.battle.net/oauth/token",
