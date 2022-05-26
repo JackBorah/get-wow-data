@@ -13,6 +13,8 @@ MIT License see LICENSE for more details
 
 import os
 import re
+from pprint import pprint
+from dotenv import load_dotenv
 import requests
 from getwowdata import exceptions
 from getwowdata.urls import urls
@@ -106,10 +108,10 @@ class WowApi:
         except KeyError:
             if self.wow_api_id is None or self.wow_api_secret is None:
                 raise NameError(
-                    "No wow_api_id or wow_api_secret was found."
+                    "No wow_api_id or wow_api_secret was found. "
                     "Set them as environment variables or "
                     "pass into get_access_token."
-                )
+                ) from NameError
 
             auth = (self.wow_api_id, self.wow_api_secret)
             access_token_response = requests.post(
@@ -245,8 +247,8 @@ class WowApi:
                 "namespace": f"static-{self.region}",
                 "access_token": self.access_token,
                 "locale": self.locale,
-            }
-            ** extra_params
+            },
+            **extra_params
         }
 
         response = requests.get(
@@ -276,7 +278,7 @@ class WowApi:
         }
         return requests.get(
             urls["realm"].format(
-                self.region, connected_realm_id=connected_realm_id
+                region=self.region, connected_realm_id=connected_realm_id
             ),
             params=params,
             timeout=timeout,
@@ -304,7 +306,7 @@ class WowApi:
                 region=self.region, connected_realm_id=connected_realm_id
             ),
             params=params,
-            imeout=timeout,
+            timeout=timeout,
         ).json()
 
     def get_profession_index(self, timeout=30) -> dict:
@@ -574,15 +576,15 @@ class WowApi:
         id_pattern = re.compile(r"[\d]+")
 
         response_index = self.connected_realm_search(timeout=timeout)
-        for realms in response_index["connected_realms"]:
-            realms_response = requests.get(
-                realms["href"],
-                params={"access_token": self.access_token, "locale": self.locale},
-                timeout=timeout,
-            ).json()
-
-            for realm in realms_response["realms"]:
-                connected_realm_id = id_pattern.search(realm["connected_realm"]["href"])
-                index[realm["name"]] = connected_realm_id.group()
+        realms_list = response_index["results"]
+        for connected_realms in realms_list:
+            connected_realm_id = id_pattern.search(connected_realms["key"]["href"])
+            for realm in connected_realms["data"]["realms"]:
+                index[realm["slug"]] = connected_realm_id.group()
 
         return index
+
+if __name__ == "__main__":
+    load_dotenv()
+    x = WowApi('us').get_connected_realm_index()
+    pprint(x)
