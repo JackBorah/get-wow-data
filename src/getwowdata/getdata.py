@@ -14,42 +14,21 @@ MIT License see LICENSE for more details
 import os
 import re
 import requests
-from . import exceptions
+from getwowdata import exceptions
+from getwowdata.urls import urls
 
-
-class GetWowData:
+class WowApi:
     """Creates an object with access_key, region, and, optionally, locale attributes.
 
     Attributes:
         region (str): Ex: 'us'. The region where the data will come from.
-            See https://develop.battle.net/documentation/world-of-warcraft/guides/namespaces.
+            See https://develop.battle.net/documentation/guides/regionality-and-apis
         locale (str): Ex: 'en_US'. The language data will be returned in.
             See https://develop.battle.net/documentation/world-of-warcraft/guides/localization.
         access_token (str): Required to query Blizzard APIs. See Setup in readme or
             visit https://develop.battle.net/ and click get started now.
         urls (dict): A collection of urls that will be queried by this classes' methods.
     """
-
-    urls = {
-        "access_token": "https://{region}.battle.net/oauth/token",
-        "connected_realm_index": "https://{region}.api.blizzard.com/data/wow/connected-realm/index",
-        "realm": "https://{region}.api.blizzard.com/data/wow/connected-realm/{connected_realm_id}",
-        "auction": "https://{region}.api.blizzard.com/data/wow/connected-realm/{connected_realm_id}/auctions",
-        "profession_index": "https://{region}.api.blizzard.com/data/wow/profession/index",
-        "profession_skill_tier": "https://{region}.api.blizzard.com/data/wow/profession/{profession_id}",
-        "profession_tier_detail": "https://{region}.api.blizzard.com/data/wow/profession/{profession_id}/skill-tier/{skill_tier_id}",
-        "profession_icon": "https://{region}.api.blizzard.com/data/wow/media/profession/{profession_id}",
-        "recipe_detail": "https://{region}.api.blizzard.com/data/wow/recipe/{recipe_id}",
-        "repice_icon": "https://{region}.api.blizzard.com/data/wow/media/recipe/{recipe_id}",
-        "item_classes": "https://{region}.api.blizzard.com/data/wow/item-class/index",
-        "item_subclass": "https://{region}.api.blizzard.com/data/wow/item-class/{item_class_id}",
-        "item_set_index": "https://{region}.api.blizzard.com/data/wow/item-set/index?",
-        "item_icon": "https://{region}.api.blizzard.com/data/wow/media/item/{item_id}",
-        "wow_token": "https://{region}.api.blizzard.com/data/wow/token/index",
-        "search_realm": "https://{region}.api.blizzard.com/data/wow/search/connected-realm",
-        "search_item": "https://{region}.api.blizzard.com/data/wow/search/item",
-        "search_media": "https://{region}.api.blizzard.com/data/wow/search/media",
-    }
 
     def __init__(
         self,
@@ -73,12 +52,12 @@ class GetWowData:
         """
         self.region = region
         self.locale = locale
-        self.access_token = self.get_access_token(wow_api_id, wow_api_secret)
+        self.wow_api_id = wow_api_id
+        self.wow_api_secret = wow_api_secret
+        self.access_token = self.get_access_token()
 
     def get_access_token(
         self,
-        wow_api_id: str = None,
-        wow_api_secret: str = None,
         timeout: int = 30,
     ) -> str:
         """Returns an access token.
@@ -89,10 +68,6 @@ class GetWowData:
         it expires.
 
         Args:
-            wow_api_id (str, optional): Your client id from https://develop.battle.net/.
-                Ignore if id is set as environment variable.
-            wow_api_secret (str, optional): Your client secret from https://develop.battle.net/.
-                Ignore if secret is set as environment variable.
             timeout (int): How long (in seconds) until the request to the API timesout
                 Default = 30 seconds.
 
@@ -107,13 +82,13 @@ class GetWowData:
                 access_token_response.json()['access_token'].
         """
 
+        
         token_data = {"grant_type": "client_credentials"}
-        self.region = self.region
 
         try:
             auth = (os.environ["wow_api_id"], os.environ["wow_api_secret"])
             access_token_response = requests.post(
-                self.urls["access_token"].format(region=self.region),
+                urls["access_token"].format(region=self.region),
                 data=token_data,
                 auth=auth,
                 timeout=timeout,
@@ -124,20 +99,21 @@ class GetWowData:
             except KeyError:
                 raise exceptions.JSONChangedError(
                     "access_token not found in access_token_response."
-                    "The repsonse's format may have changed."
+                    "The Api's repsonse format may have changed."
                 ) from KeyError
 
+        #if os.environ is not found
         except KeyError:
-            if wow_api_id is None or wow_api_secret is None:
+            if self.wow_api_id is None or self.wow_api_secret is None:
                 raise NameError(
                     "No wow_api_id or wow_api_secret was found."
                     "Set them as environment variables or "
                     "pass into get_access_token."
-                ) from KeyError
+                )
 
-            auth = (wow_api_id, wow_api_secret)
+            auth = (self.wow_api_id, self.wow_api_secret)
             access_token_response = requests.post(
-                self.urls["access_token"].format(region=self.region),
+                urls["access_token"].format(region=self.region),
                 data=token_data,
                 auth=auth,
                 timeout=timeout,
@@ -148,7 +124,7 @@ class GetWowData:
             except KeyError:
                 raise exceptions.JSONChangedError(
                     "access_token not found in access_token_response."
-                    "The repsonse's format may have changed."
+                    "The Api's repsonse format may have changed."
                 ) from KeyError
 
     def connected_realm_search(self, **extra_params: dict) -> dict:
@@ -210,7 +186,7 @@ class GetWowData:
         }
 
         response = requests.get(
-            self.urls["search_realm"].format(region=self.region),
+            urls["search_realm"].format(region=self.region),
             params=params,
             timeout=timeout,
         )
@@ -274,7 +250,7 @@ class GetWowData:
         }
 
         response = requests.get(
-            self.urls["search_item"].format(region=self.region),
+            urls["search_item"].format(region=self.region),
             params=params,
             timeout=timeout,
         )
@@ -299,7 +275,7 @@ class GetWowData:
             "access_token": self.access_token,
         }
         return requests.get(
-            self.urls["realm"].format(
+            urls["realm"].format(
                 self.region, connected_realm_id=connected_realm_id
             ),
             params=params,
@@ -324,7 +300,7 @@ class GetWowData:
             "access_token": self.access_token,
         }
         return requests.get(
-            self.urls["auction"].format(
+            urls["auction"].format(
                 region=self.region, connected_realm_id=connected_realm_id
             ),
             params=params,
@@ -348,7 +324,7 @@ class GetWowData:
             "access_token": self.access_token,
         }
         return requests.get(
-            self.urls["profession_index"].format(region=self.region),
+            urls["profession_index"].format(region=self.region),
             params=params,
             timeout=timeout,
         ).json()
@@ -374,7 +350,7 @@ class GetWowData:
             "access_token": self.access_token,
         }
         return requests.get(
-            self.urls["profession_skill_tier"].format(
+            urls["profession_skill_tier"].format(
                 region=self.region, profession_id=profession_id
             ),
             params=params,
@@ -398,7 +374,7 @@ class GetWowData:
             "access_token": self.access_token,
         }
         return requests.get(
-            self.urls["profession_icon"].format(
+            urls["profession_icon"].format(
                 region=self.region, profession_id=profession_id
             ),
             params=params,
@@ -426,7 +402,7 @@ class GetWowData:
             "access_token": self.access_token,
         }
         return requests.get(
-            self.urls["profession_tier_detail"].format(
+            urls["profession_tier_detail"].format(
                 region=self.region,
                 profession_id=profession_id,
                 skill_tier_id=skill_tier_id,
@@ -447,7 +423,7 @@ class GetWowData:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
         return requests.get(
-            self.urls["recipe_detail"].format(region=self.region, recipe_id=recipe_id),
+            urls["recipe_detail"].format(region=self.region, recipe_id=recipe_id),
             params={
                 "namespace": f"static-{self.region}",
                 "locale": self.locale,
@@ -468,7 +444,7 @@ class GetWowData:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
         return requests.get(
-            self.urls["repice_icon"].format(region=self.region, recipe_id=recipe_id),
+            urls["repice_icon"].format(region=self.region, recipe_id=recipe_id),
             params={
                 "namespace": f"static-{self.region}",
                 "locale": self.locale,
@@ -489,7 +465,7 @@ class GetWowData:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
         return requests.get(
-            self.urls["item_classes"].format(region=self.region),
+            urls["item_classes"].format(region=self.region),
             params={
                 "namespace": f"static-{self.region}",
                 "locale": self.locale,
@@ -511,7 +487,7 @@ class GetWowData:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
         return requests.get(
-            self.urls["item_subclass"].format(
+            urls["item_subclass"].format(
                 region=self.region, item_class_id=item_class_id
             ),
             params={
@@ -533,7 +509,7 @@ class GetWowData:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
         return requests.get(
-            self.urls["item_set_index"].format(region=self.region),
+            urls["item_set_index"].format(region=self.region),
             params={
                 "namespace": f"static-{self.region}",
                 "locale": self.locale,
@@ -554,7 +530,7 @@ class GetWowData:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
         return requests.get(
-            self.urls["item_icon"].format(region=self.region, item_id=item_id),
+            urls["item_icon"].format(region=self.region, item_id=item_id),
             params={
                 "namespace": f"static-{self.region}",
                 "locale": self.locale,
@@ -574,7 +550,7 @@ class GetWowData:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
         return requests.get(
-            self.urls["wow_token"].format(region=self.region),
+            urls["wow_token"].format(region=self.region),
             params={
                 "namespace": f"dynamic-{self.region}",
                 "locale": self.locale,

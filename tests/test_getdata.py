@@ -1,132 +1,147 @@
+"""This module contains tests for the getwowdata package.
+
+Copyright (c) 2022 JackBorah
+MIT License see LICENSE for more details
+"""
+
 import unittest
+from unittest import mock
 import os
 import requests
-import getwowdata
-class TestEnvironmentVariables(unittest.TestCase):
+import responses
+from responses import matchers
+from getwowdata import WowApi
+from getwowdata.exceptions import JSONChangedError
+from getwowdata.urls import urls
 
-    def test_client_id_environment_variable_set(self):
-        try:
-            os.environ["wow_api_id"]
-        except KeyError:
-            self.fail("Blizzard API client Id not set as environment variable")
 
-    def test_secret_environment_variable_set(self):
-        try:
-            os.environ["wow_api_secret"]
-        except KeyError:
-            self.fail("Blizzard API secret not set as environment variable")
-#TODO make requests.get to each url from getwowdata.urls
-class TestWoWUrls(unittest.TestCase):
-    access_token = getwowdata.get_access_token()
-    
-    def test_search_ok(self):
-        try:
-            response = getwowdata.get_connected_realm_index(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from search function")
+class TestWowApiMethods(unittest.TestCase):
+    """Test that all functions from getdata.py returns correctly."""
 
-    def test_connected_realm_index_ok(self):
-        try:
-            response = getwowdata.get_connected_realm_index(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_connected_realm_index")
-        
-    def test_get_realm_ok(self):
-        try:
-            response = getwowdata.get_realm(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_realm")
-        
-    def test_get_auctions_ok(self):
-        try:
-            response = getwowdata.get_auctions(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_auctions")
-        
-    def test_get_profession_index_ok(self):
-        try:
-            response = getwowdata.get_profession_index(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_profession_index")
-        
-    def test_get_profession_tiers_ok(self):
-        try:
-            response = getwowdata.get_profession_tiers(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_profession_tiers")
-        
-    def test_get_profession_icon_ok(self):
-        try:
-            response = getwowdata.get_profession_icon(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_profession_icon")
-        
-    def test_get_profession_tier_details_ok(self):
-        try:
-            response = getwowdata.get_profession_tier_details(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_profession_tier_details")
-        
-    def test_get_recipe_details_ok(self):
-        try:
-            response = getwowdata.get_recipe_details(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_recipe_details")
-        
-    def test_get_recipe_icon_ok(self):
-        try:
-            response = getwowdata.get_recipe_icon(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_recipe_icon")
-        
-    def test_get_item_classes_ok(self):
-        try:
-            response = getwowdata.get_item_classes(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_item_classes")
-        
-    def test_get_item_subclasses_ok(self):
-        try:
-            response = getwowdata.get_item_subclasses(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_item_subclasses")
+    """
+    functional test data
+    #format defaults
+    connected_realm_id = 4
+    profession_id = 164
+    skill_tier_id = 2437
+    recipe_id = 1631
+    item_class_id = 1
+    item_id = 19019
 
-    def test_get_item_set_index_ok(self):
-        try:
-            response = getwowdata.get_item_set_index(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_item_set_index")
-    
-    def test_get_item_list_ok(self):
-        try:
-            response = getwowdata.get_item_list(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_item_list")
+    wow_api = []
+    regions = ['us', 'eu', 'kr']
 
-    def test_get_item_icon_ok(self):
-        try:
-            response = getwowdata.get_item_icon(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_item_icon")
+    for index, region in enumerate(regions):
+        api_instance = WowApi(region, 'en_US')
+        #formats all urls for use in responses
+        for key, url in api_instance.urls.items():
+            api_instance.urls[key] = url.format(region=region,
+            connected_realm_id=connected_realm_id,
+            profession_id=profession_id,
+            skill_tier_id=skill_tier_id,
+            recipe_id=recipe_id,
+            item_class_id=item_class_id,
+            item_id=item_id
+            )
+        wow_api.append(api_instance)
+    """
 
-    def test_get_wow_token_ok(self):
-        try:
-            response = getwowdata.get_wow_token(self.access_token)
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
-            self.fail(f"{response.status_code} status code returned from get_wow_token")
+    region = "us"
+
+    # Make mock env for all functions?
+    # Yes tests should not need actual data set
+
+    @responses.activate
+    def test_get_access_token_from_env(self):
+        """Test get_access_token() with environment variables."""
+        with mock.patch.dict(
+            os.environ, {"wow_api_id": "valid", "wow_api_secret": "valid"}
+        ):
+            responses.post(
+                urls["access_token"].format(region=self.region),
+                json={"access_token": "0000000000000000000000000000000000"},
+            )
+            wow_api = WowApi(self.region, "en_US")
+            token = wow_api.get_access_token()
+            self.assertEqual(type(token), str)
+            self.assertEqual(len(token), 34)
+
+    @responses.activate
+    def test_get_access_token_from_arg(self):
+        """Test get_access_token() with function arguments."""
+        with mock.patch.dict(os.environ, {}, clear=True):
+            responses.post(
+                urls["access_token"].format(region=self.region),
+                json={"access_token": "0000000000000000000000000000000000"},
+            )
+            wow_api = WowApi(
+                self.region,
+                locale="en_US",
+                wow_api_id="wow_api_id",
+                wow_api_secret="wow_api_secret",
+            )
+            token = wow_api.get_access_token()
+            self.assertEqual(type(token), str)
+            self.assertEqual(len(token), 34)
+
+    @responses.activate
+    def test_get_access_token_raises_JSONChangedError_from_env(self):
+        """Test get_access_token() raises JSONChangedError with env."""
+        with mock.patch.dict(
+            os.environ, {"wow_api_id": "valid", "wow_api_secret": "valid"}
+        ):
+            responses.post(
+                urls["access_token"].format(region=self.region),
+                json={"access_token_not_found": "0000000000000000000000000000000000"},
+            )
+            with self.assertRaises(JSONChangedError):
+                WowApi(self.region, "en_US")
+
+    @responses.activate
+    def test_get_access_token_raises_JSONChangedError_from_arg(self):
+        """Test get_access_token() raises JSONChangedError with args."""
+        with mock.patch.dict(os.environ, {}, clear=True):
+
+            responses.post(
+                urls["access_token"].format(region=self.region),
+                json={"access_token_not_found": "0000000000000000000000000000000000"},
+            )
+            with self.assertRaises(JSONChangedError):
+                wow_api = WowApi(
+                    self.region,
+                    locale="en_US",
+                    wow_api_id="wow_api_id",
+                    wow_api_secret="wow_api_secret",
+                )
+
+    @responses.activate
+    def test_get_access_token_no_env_or_param(self):
+        """Test get_access_token() raises NameError
+        when no wow_api_id or secret is passed in or an env.
+        """
+
+        with mock.patch.dict(os.environ, {}, clear=True):
+            responses.post(
+                urls["access_token"].format(region=self.region),
+                json={"access_token_not_found": "0000000000000000000000000000000000"},
+            )
+            with self.assertRaises(NameError):
+                WowApi(self.region, locale="en_US")
+
+    @responses.activate
+    def connected_realm_search_timeout_in_querystring(self):
+        """Assert that timeout is a part of the querystring"""
+        responses.get(urls["search_realm"].format(region=self.region),
+            json={"Test worked"}
+        )
+        wow_api = WowApi(
+                    self.region,
+                    locale="en_US",
+                    wow_api_id="wow_api_id",
+                    wow_api_secret="wow_api_secret",
+                )
+        self.assertEqual(wow_api.connected_realm_search(), "Test worked")
+
+
+if __name__ == "__main__":
+    unittest.main()
