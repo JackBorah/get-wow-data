@@ -7,9 +7,7 @@ MIT License see LICENSE for more details
 import unittest
 from unittest import mock
 import os
-import requests
 import responses
-from responses import matchers
 from getwowdata import WowApi
 from getwowdata.exceptions import JSONChangedError
 from getwowdata.urls import urls
@@ -17,34 +15,6 @@ from getwowdata.urls import urls
 
 class TestWowApiMethods(unittest.TestCase):
     """Test that all functions from getdata.py returns correctly."""
-
-    """
-    functional test data
-    #format defaults
-    connected_realm_id = 4
-    profession_id = 164
-    skill_tier_id = 2437
-    recipe_id = 1631
-    item_class_id = 1
-    item_id = 19019
-
-    wow_api = []
-    regions = ['us', 'eu', 'kr']
-
-    for index, region in enumerate(regions):
-        api_instance = WowApi(region, 'en_US')
-        #formats all urls for use in responses
-        for key, url in api_instance.urls.items():
-            api_instance.urls[key] = url.format(region=region,
-            connected_realm_id=connected_realm_id,
-            profession_id=profession_id,
-            skill_tier_id=skill_tier_id,
-            recipe_id=recipe_id,
-            item_class_id=item_class_id,
-            item_id=item_id
-            )
-        wow_api.append(api_instance)
-    """
 
     region = "us"
 
@@ -107,7 +77,7 @@ class TestWowApiMethods(unittest.TestCase):
                 json={"access_token_not_found": "0000000000000000000000000000000000"},
             )
             with self.assertRaises(JSONChangedError):
-                wow_api = WowApi(
+                WowApi(
                     self.region,
                     locale="en_US",
                     wow_api_id="wow_api_id",
@@ -259,7 +229,11 @@ class TestWowApiMethods(unittest.TestCase):
         )
         responses.get(
             urls["profession_icon"].format(region=self.region, profession_id=1),
-            json={"sucess": "Test worked"},
+            json={"assets": [{"value": "https://render.worldofwarcraft.com/"}]},
+        )
+        responses.get(
+            "https://render.worldofwarcraft.com/",
+            body="test",
         )
         wow_api = WowApi(
             self.region,
@@ -268,7 +242,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_profession_icon(1), {"sucess": "Test worked"})
+        self.assertEqual(wow_api.get_profession_icon(1), b"test")
 
     @responses.activate
     def test_get_profession_tier_recipes(self):
@@ -323,7 +297,11 @@ class TestWowApiMethods(unittest.TestCase):
         )
         responses.get(
             urls["repice_icon"].format(region=self.region, recipe_id=1),
-            json={"sucess": "Test worked"},
+            json={"assets": [{"value": "https://render.worldofwarcraft.com/"}]},
+        )
+        responses.get(
+            "https://render.worldofwarcraft.com/",
+            body="test",
         )
         wow_api = WowApi(
             self.region,
@@ -332,7 +310,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_recipe_icon(1), {"sucess": "Test worked"})
+        self.assertEqual(wow_api.get_recipe_icon(1), b"test")
 
     @responses.activate
     def test_get_item_classes(self):
@@ -403,7 +381,11 @@ class TestWowApiMethods(unittest.TestCase):
         )
         responses.get(
             urls["item_icon"].format(region=self.region, item_id=1),
-            json={"sucess": "Test worked"},
+            json={"assets": [{"value": "https://render.worldofwarcraft.com/"}]},
+        )
+        responses.get(
+            "https://render.worldofwarcraft.com/",
+            body="test",
         )
         wow_api = WowApi(
             self.region,
@@ -412,7 +394,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_item_icon(1), {"sucess": "Test worked"})
+        self.assertEqual(wow_api.get_item_icon(1), b"test")
 
     @responses.activate
     def test_get_wow_token(self):
