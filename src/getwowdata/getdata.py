@@ -2,10 +2,13 @@
 
 Typical usage example:
 
-access_token = get_access_token()
+from getwowdata import WowApi
+from dotenv import load_dotenv
 
-winterhoof_auctions = get_auctions(access_token, connected_realm_id = 4)
-winterhoof_auctions.json()['auctions']
+load_dotenv()
+
+us_api = WowApi('us', 'en_US')
+winterhoof_auctions = us_api.get_auctions(4)
 
 Copyright (c) 2022 JackBorah
 MIT License see LICENSE for more details
@@ -27,9 +30,15 @@ class WowApi:
             See https://develop.battle.net/documentation/guides/regionality-and-apis
         locale (str): Ex: 'en_US'. The language data will be returned in.
             See https://develop.battle.net/documentation/world-of-warcraft/guides/localization.
-        access_token (str): Required to query Blizzard APIs. See Setup in readme or
+            Default = None.
+        wow_api_id (str): Required to query Blizzard APIs. Can be loaded from
+            environment variables. See Setup in readme or
             visit https://develop.battle.net/ and click get started now.
-        urls (dict): A collection of urls that will be queried by this classes' methods.
+            Default = None.
+        wow_api_secret (str): Required to query Blizzard APIs. Can be loaded from
+            environment variables. See Setup in readme or
+            visit https://develop.battle.net/ and click get started now.
+            Default = None.
     """
 
     def __init__(
@@ -84,7 +93,6 @@ class WowApi:
                 access_token_response.json()['access_token'].
         """
 
-        
         token_data = {"grant_type": "client_credentials"}
 
         try:
@@ -159,14 +167,15 @@ class WowApi:
                 by any of its fields. Useful parameters are listed below.
                 Parameters must be sent as a dictionary where keys are str and
                 values are str or int like {'_page': 1, 'realms.slug':'illidan', ...}
-            **timeout (int): How long (in seconds) until the request to the API timesout
-                Default = 30 seconds.
-            **_pagesize (int, optional): Number of entries in a result page.
-                Default = 100, min = 1, max = 1000.
+            **timeout (int, optional): How long (in seconds) until the request to the API timesout
+                Default = 30 seconds. Ex: {'timeout': 10}
+            **_pageSize (int, optional): Number of entries in a result page.
+                Default = 100, min = 1, max = 1000. Ex: {"_pageSize": 2}
             **_page (int, optional): The page number that will be returned.
-                Default = 1.
+                Default = 1. Ex: {"_page": 1}
             **orderby (str, optional): Accepts a comma seperated field of elements to sort by.
                 See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
+                Ex: {"orderby":"data.required_level"}
             **data.realms.slug (str, optional): All realm slugs must be lowercase with spaces
                 converted to dashes (-)
 
@@ -178,7 +187,7 @@ class WowApi:
         except KeyError:
             timeout = 30
 
-        params = {
+        conn_realm_search_params = {
             **{
                 "namespace": f"dynamic-{self.region}",
                 "access_token": self.access_token,
@@ -189,7 +198,7 @@ class WowApi:
 
         response = requests.get(
             urls["search_realm"].format(region=self.region),
-            params=params,
+            params=conn_realm_search_params,
             timeout=timeout,
         )
         response.raise_for_status()
@@ -222,14 +231,15 @@ class WowApi:
             **extra_params (int/str, optional): Returned data can be filtered by any
                 of its fields. Useful parameters are listed below.
                 Ex: {'data.required_level':35} will only return items where required_level == 35
-            **timeout (int): How long (in seconds) until the request to the API timesout
-                Default = 30 seconds.
-            **_pagesize (int, optional): Number of entries in a result page.
-                Default = 100, min = 1, max = 1000.
+            **timeout (int, optional): How long (in seconds) until the request to the API timesout
+                Default = 30 seconds. Ex: {'timeout': 10}
+            **_pageSize (int, optional): Number of entries in a result page.
+                Default = 100, min = 1, max = 1000. Ex: {"_pageSize": 2}
             **_page (int, optional): The page number that will be returned.
-                Default = 1.
+                Default = 1. Ex: {"_page": 1}
             **orderby (str, optional): Accepts a comma seperated field of elements to sort by.
                 See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
+                Ex: {"orderby":"data.required_level"}
             **id (int, optional): An item's id. Enter in the following format
                 {'id': '(id_start, id_end)'} to specify a set of id's.
                 See https://develop.battle.net/documentation/world-of-warcraft/guides/search.
@@ -242,21 +252,20 @@ class WowApi:
         except KeyError:
             timeout = 30
 
-        params = {
+        search_params = {
             **{
                 "namespace": f"static-{self.region}",
                 "access_token": self.access_token,
-                "locale": self.locale,
             },
             **extra_params
         }
 
-        response = requests.get(
+        search_response = requests.get(
             urls["search_item"].format(region=self.region),
-            params=params,
+            params=search_params,
             timeout=timeout,
         )
-        return response.json()
+        return search_response.json()
 
     def get_connected_realms_by_id(
         self, connected_realm_id: int, timeout: int = 30
@@ -271,7 +280,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        params = {
+        realm_params = {
             "namespace": f"dynamic-{self.region}",
             "locale": self.locale,
             "access_token": self.access_token,
@@ -280,7 +289,7 @@ class WowApi:
             urls["realm"].format(
                 region=self.region, connected_realm_id=connected_realm_id
             ),
-            params=params,
+            params=realm_params,
             timeout=timeout,
         ).json()
 
@@ -296,7 +305,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        params = {
+        auction_params = {
             "namespace": f"dynamic-{self.region}",
             "locale": self.locale,
             "access_token": self.access_token,
@@ -305,7 +314,7 @@ class WowApi:
             urls["auction"].format(
                 region=self.region, connected_realm_id=connected_realm_id
             ),
-            params=params,
+            params=auction_params,
             timeout=timeout,
         ).json()
 
@@ -320,14 +329,14 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        params = {
+        prof_params = {
             "namespace": f"static-{self.region}",
             "locale": self.locale,
             "access_token": self.access_token,
         }
         return requests.get(
             urls["profession_index"].format(region=self.region),
-            params=params,
+            params=prof_params,
             timeout=timeout,
         ).json()
 
@@ -346,7 +355,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        params = {
+        prof_tier_params = {
             "namespace": f"static-{self.region}",
             "locale": self.locale,
             "access_token": self.access_token,
@@ -355,12 +364,12 @@ class WowApi:
             urls["profession_skill_tier"].format(
                 region=self.region, profession_id=profession_id
             ),
-            params=params,
+            params=prof_tier_params,
             timeout=timeout,
         ).json()
 
-    def get_profession_icon(self, profession_id, timeout=30) -> dict:
-        """Returns a profession's icon.
+    def get_profession_icon(self, profession_id, timeout=30) -> bytes:
+        """Returns a profession's icon in bytes.
 
         Args:
             profession_id (int): The profession's id. Found in get_profession_index().
@@ -368,20 +377,22 @@ class WowApi:
                 Default: 30 seconds.
 
         Returns:
-            A json looking dict with nested dicts and/or lists containing data from the API.
+            The profession's icon in bytes.
         """
-        params = {
+        prof_icon_params = {
             "namespace": f"static-{self.region}",
             "locale": self.locale,
             "access_token": self.access_token,
         }
-        return requests.get(
+        icon_response = requests.get(
             urls["profession_icon"].format(
                 region=self.region, profession_id=profession_id
             ),
-            params=params,
+            params=prof_icon_params,
             timeout=timeout,
         ).json()
+
+        return requests.get(icon_response["assets"][0]["value"], timeout=timeout).content
 
     # Includes the categories (weapon mods, belts, ...) and the recipes (id, name) in them
     def get_profession_tier_recipes(
@@ -398,7 +409,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        params = {
+        prof_teir_recipe_params = {
             "namespace": f"static-{self.region}",
             "locale": self.locale,
             "access_token": self.access_token,
@@ -409,7 +420,7 @@ class WowApi:
                 profession_id=profession_id,
                 skill_tier_id=skill_tier_id,
             ),
-            params=params,
+            params=prof_teir_recipe_params,
             timeout=timeout,
         ).json()
 
@@ -434,8 +445,8 @@ class WowApi:
             timeout=timeout,
         ).json()
 
-    def get_recipe_icon(self, recipe_id, timeout=30) -> dict:
-        """Returns a recipes icon.
+    def get_recipe_icon(self, recipe_id, timeout=30) -> bytes:
+        """Returns a recipes icon in bytes.
 
         Args:
             recipe_id (int): The recipe's id. Found in get_profession_tier_details().
@@ -443,9 +454,9 @@ class WowApi:
                 Default: 30 seconds.
 
         Returns:
-            A json looking dict with nested dicts and/or lists containing data from the API.
+            The recipe icon in bytes.
         """
-        return requests.get(
+        icon_response = requests.get(
             urls["repice_icon"].format(region=self.region, recipe_id=recipe_id),
             params={
                 "namespace": f"static-{self.region}",
@@ -454,6 +465,9 @@ class WowApi:
             },
             timeout=timeout,
         ).json()
+
+        return requests.get(icon_response["assets"][0]["value"], timeout=timeout).content
+
 
     def get_item_classes(self, timeout=30) -> dict:
         """Returns all item classes (consumable, container, weapon, ...).
@@ -520,18 +534,18 @@ class WowApi:
             timeout=timeout,
         ).json()
 
-    def get_item_icon(self, item_id, timeout=30) -> dict:
-        """Returns the icon for an item.
+    def get_item_icon(self, item_id, timeout=30) -> bytes:
+        """Returns the icon for an item in bytes.
 
         Args:
-            item_id (int): The items id. Get from search() with api = item.
+            item_id (int): The items id. Get from item_search().
             timeout (int): How long until the request to the API timesout in seconds.
                 Default: 30 seconds.
 
         Returns:
-            A json looking dict with nested dicts and/or lists containing data from the API.
+            Item icon in bytes.
         """
-        return requests.get(
+        icon_response = requests.get(
             urls["item_icon"].format(region=self.region, item_id=item_id),
             params={
                 "namespace": f"static-{self.region}",
@@ -540,6 +554,7 @@ class WowApi:
             },
             timeout=timeout,
         ).json()
+        return requests.get(icon_response["assets"][0]["value"], timeout=timeout).content
 
     def get_wow_token(self, timeout=30) -> dict:
         """Returns the price of the wow token and the timestamp of its last update.
@@ -550,6 +565,8 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            The price is in the format g*sscc where g=gold, s=silver, and c=copper.
+            Ex: 123456 = 12g 34s 56c
         """
         return requests.get(
             urls["wow_token"].format(region=self.region),
@@ -562,7 +579,7 @@ class WowApi:
         ).json()
 
     def get_connected_realm_index(self, timeout=30) -> dict:
-        """Returns a dict where {key = Realm name: value = connected realm id}
+        """Returns a dict where {key = Realm name: value = connected realm id, ...}
 
         Args:
             timeout (int): How long until the request to the API timesout in seconds.
@@ -585,6 +602,9 @@ class WowApi:
         return index
 
 if __name__ == "__main__":
+    from dotenv import load_dotenv
     load_dotenv()
-    x = WowApi('us').get_connected_realm_index()
-    pprint(x)
+    x = WowApi('us', locale='en_US')
+    params = {"timeout":20, "_pageSize":3, "id":21985}
+    y = x.item_search(**params)
+    pprint(y)
