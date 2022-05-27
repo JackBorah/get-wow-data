@@ -1,33 +1,29 @@
 # getwowdata
 
-**getwowdata** already implements requests to the World of Warcraft (WoW) APIs so you don't have to.
+**getwowdata** implements requests to the World of Warcraft (WoW) APIs so you don't have to.
 
-Example: Get the value of all auctions on Winterhoof.
+Example: Get the value of all auctions from the Winterhoof server.
 ```python
 import getwowdata as gwd
+from dotenv import load_dotenv
 
-#optional
-wow_api_id = #your client id
-wow_api_secret = #your client secret
+#get wow_api_id and wow_api_secret from .env
+#or pass as kwargs into WowApi()
+load_dotenv()
 
 total_value = 0
 
-access_token = gwd.get_access_token()
-
-winterhoof_auctions = gwd.get_auctions(access_token, connected_realm_id = 4) #4 is the connected-realm id for the winterhoof server
-winterhoof_auctions = winterhoof_auctions.json() #.json() pythonifies json into dictionaries and lists
+us_api = gwd.WowApi('us', 'en_US')
+winterhoof_auctions = us_api.get_auctions(4)
 
 for item in winterhoof_auctions['auctions']:
     try:
         total_value += item['unit_price']
-    except(KeyError):
+    except KeyError:
         total_value += item['buyout']
 
-
 print(gwd.as_gold(total_value))
-#430,423,357g 07s 00c
 ```
-
 
 
 ## Table of Contents
@@ -41,14 +37,16 @@ print(gwd.as_gold(total_value))
 - [License](#License)
 
 ## Features
-Currently only a subset of the available APIs can be pulled from.
-- search a bunch of APIs
-- get an access token
-- get realms and connected realms APIs
-- get profession APIs
-- get item APIs
-- get auction house API
-- get wow token API
+Supported APIs (see [this](https://develop.battle.net/documentation/world-of-warcraft/game-data-apis) for a complete list of APIs provided by blizzard)
+- Connected Realms
+- Items
+    - Icons
+- Auctions
+- Professions
+    - Recipes
+    - Icons
+- Wow Token
+
 
 ## Installing
 Getwowdata is avilable on PyPi:
@@ -56,22 +54,29 @@ Getwowdata is avilable on PyPi:
 $ python -m pip install getwowdata
 ```
 ## Setup
-You consume any blizzard API you need a Client Id and Client Secret.
+To access any blizzard API you need a Client Id and Client Secret.
 1. Go to [https://develop.battle.net/](https://develop.battle.net/)
 2. Click on Get started and login. 
 3. Now click create client and fill out the form.
-4. Finally, you have a Client Id and Client Secret to query Blizzards APIs
+4. You now have a Client Id and Client Secret to query Blizzards APIs
 
-#### Setting the Secret and Id as an environment variable
-##### Windows
-1. Click on the start button
-2. Type environment variables
-3. Click Edit system environment variables
-4. Click Environment Variables...
-5. Click either New... buttons 
-6. set the name to wow_api_id or wow_api_secret and their respective values
-
-**Remember not to commit your wow_api_secret!** You can set wow_api_id and wow_api_secret as environment variables and **getwowdata** will read these credentials from there.
+*Remember not to commit your wow_api_secret!* You can set wow_api_id and wow_api_secret as environment variables and **getwowdata** will read these credentials from there.
+#### Setting the id and secret as an environment variable
+1. Install dotenv with pip
+```
+python -m pip install dotenv
+```
+2. Create a file called .env
+3. Set wow_api_id andwow_api_secret
+```
+wow_api_id = x
+wow_api_secret = y
+```
+4. To load environment variables from .env
+```python
+from dotenv import load_dotenv
+load_dotenv()
+```
 
 ## API
 There are two ways to consume the World of Warcraft API the search or get functions. 
@@ -79,101 +84,61 @@ There are two ways to consume the World of Warcraft API the search or get functi
 #### Search
 
 
-Example: Searching for a specific server by name
+Example: Searching for thunderfury by its id and printing its name. 
 ```Python
-import getwowdata as gwd
+from getwowdata import WowApi
 
-access_token = gwd.get_access_token()
-gwd.search(access_token, 'connected-realm', 'realms.slug': 'illidan')
-```
+eu_api = WowApi('eu', 'en_US')
+params = {"id":19019}
 
-- 'realms.slug': 'realm-name'
-- 'realms.timezone
-##### Searchable API strings
-- azerite-essence 
-- connected-realm
-    - Use to search for a realm/realms.
-- realm
-    - Use to search for a realm/realms
-- creature
-    - Search for creatures like wolves, clefthoofs, ...
-- item
-- journal-encounter
-    - Quests
-- media
-    - all icons
-- mount
-- spell
+result_item = eu_api.item_search(**params)
+print(result_item['results'][0]['data']['name']['en_US'])
+```
+#### Searches STUB
 
-#### Gets
-```python
-get_connected_realm_index()
-```
-Realms that are connected share a single connected realm id. This returns a list of those id's and a link to their associated realms.
-```python
-get_realm()
-```
-```python
-get_auctions()
-```
-```python
-get_profession_index()
-```
-```python
-get_profession_tiers()
-```
-```python
-get_profession_icon()
-```
-```python
-get_profession_tier_details()
-```
-```python
-get_recipe_details()
-```
-```python
-get_recipe_icon()
-```
-```python
-get_item_classes()
-```
-```python
-get_item_subclasses()
-```
-```python
-get_item_set_index()
-```
-```python
-get_item_list()
-```
-```python
-get_item_icon()
-```
-```python
-get_wow_token()
-```
+Wow_Api.connected_realm_search()
+Wow_Api.item_search()
+
+#### Gets STUB
+
+Wow_Api.get_connected_realm_index()
+Wow_Api.get_realm()
+Wow_Api.get_auctions()
+Wow_Api.get_profession_index()
+Wow_Api.get_profession_tiers()
+Wow_Api.get_profession_icon()
+Wow_Api.get_profession_tier_details()
+Wow_Api.get_recipe_details()
+Wow_Api.get_recipe_icon()
+Wow_Api.get_item_classes()
+Wow_Api.get_item_subclasses()
+Wow_Api.get_item_set_index()
+Wow_Api.get_item_list()
+Wow_Api.get_item_icon()
+Wow_Api.get_wow_token()
 
 #### Reading json
 Using a normal print() on response.json() outputs gibberish.
-I recommend either the pprint module or viewing the json from [this list](https://develop.battle.net/documentation/world-of-warcraft/game-data-apis) of all the available APIs.
-
-This package is built with [requests](https://docs.python-requests.org/en/latest/) so methods like .json(), .text, .url, etc. all work with the results of get_x(). See [requests](https://docs.python-requests.org/en/latest/) for more info on what you can do. 
+I recommend either the pprint module or viewing the json from [this list](https://develop.battle.net/documentation/world-of-warcraft/game-data-apis) of all the available APIs. 
 
 ## Notes on the data
+Visit [https://develop.battle.net/documentation/world-of-warcraft](https://develop.battle.net/documentation/world-of-warcraft) for blizzard official documentation.
+Below are notes that i've gathered from the documentation, reading the returned data, and
+from forum posts/reddit. 
 #### Href's
-The href's in the json are links to related elements. The first link in a query is the url which made the query.
+The href's in the json are links to related elements. One of the links will be to the url that produced that data. 
 #### Prices
-The prices or value of an item is in the following format gggg*sscc, where g = gold, s = silver, c = copper. 
+The prices or value of an item is in the following format g*sscc, where g = gold, s = silver, c = copper. 
 Silver and copper are fixed in the last 4 decimal spaces whlie gold can be as any number of spaces before silver. So 25289400 is 2528g 94s 00c.
 
 #### buyout vs unit_price
 Stackable items have a single unit_price while unique items like weapons have a bid/buyout price.
 
 #### Item bonus list
-The item bonus list are the modifiers applied to an item.
-Versions of an item with different bonuses can be found on [wowhead](https://www.wowhead.com/). Blizzard does not make the bonus values and their corresponding effects available through an api. The wowhead page for an item shows its bonuses (if selected under item versions) take a querystring with a bonusId which will return the correct variant of the item.
+The item bonus list are the modifiers applied to an item, such as the level its scaled to. Blizzard does not make the bonus values and their corresponding effects available through an API. 
 
-I will make some solution for this even if its just another cheatsheet with a list of bonus id's and their effects. 
+Versions of an item with different bonuses can be found on [wowhead](https://www.wowhead.com/). Mouse over select version and pick your desired version from the drop down menu. 
+
 #### Item context
 Where the item was created. Incomplete list
 | Context 	| Value          	|
@@ -205,8 +170,9 @@ Incomplete list
 
 
 ## Feedback
-Feel free to [file an issue](https://github.com/JackBorah/getwowdata/issues/new).
-I'm currently learning how to code so if you have any suggestions or corrections I would really appriciate it.
+Feel free to [file an issue](https://github.com/JackBorah/getwowdata/issues/new). 
+
+I'm currently teaching myself how to code, so, if you have any suggestions or corrections I would really appriciate it.
 
 
 ## License
