@@ -112,6 +112,7 @@ venv.bak/
 Scripts/
 pyvenv.cfg
 get-wow-data-venv/
+.vscode
 
 # Spyder project settings
 .spyderproject

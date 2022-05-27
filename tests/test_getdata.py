@@ -229,7 +229,7 @@ class TestWowApiMethods(unittest.TestCase):
         )
         responses.get(
             urls["profession_icon"].format(region=self.region, profession_id=1),
-            json={"assets": [{"value": "https://render.worldofwarcraft.com/"}]},
+            json={"assets": [{"value": urls["icon_test"]}]},
         )
         responses.get(
             "https://render.worldofwarcraft.com/",

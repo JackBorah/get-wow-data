@@ -16,8 +16,6 @@ MIT License see LICENSE for more details
 
 import os
 import re
-from pprint import pprint
-from dotenv import load_dotenv
 import requests
 from getwowdata import exceptions
 from getwowdata.urls import urls
@@ -600,11 +598,3 @@ class WowApi:
                 index[realm["slug"]] = connected_realm_id.group()
 
         return index
-
-if __name__ == "__main__":
-    from dotenv import load_dotenv
-    load_dotenv()
-    x = WowApi('us', locale='en_US')
-    params = {"timeout":20, "_pageSize":3, "id":21985}
-    y = x.item_search(**params)
-    pprint(y)
