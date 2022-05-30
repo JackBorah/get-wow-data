@@ -32,7 +32,7 @@ class TestWowApiMethods(unittest.TestCase):
                 json={"access_token": "0000000000000000000000000000000000"},
             )
             wow_api = WowApi(self.region, "en_US")
-            token = wow_api.get_access_token()
+            token = wow_api._get_access_token()
             self.assertEqual(type(token), str)
             self.assertEqual(len(token), 34)
 
@@ -50,7 +50,7 @@ class TestWowApiMethods(unittest.TestCase):
                 wow_api_id="wow_api_id",
                 wow_api_secret="wow_api_secret",
             )
-            token = wow_api.get_access_token()
+            token = wow_api._get_access_token()
             self.assertEqual(type(token), str)
             self.assertEqual(len(token), 34)
 
