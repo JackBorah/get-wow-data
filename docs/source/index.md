@@ -3,7 +3,9 @@
 **get-wow-data** implements requests to the World of Warcraft (WoW) APIs so you don't have to.
 
 Example: Get the value of all auctions from the Winterhoof server.
+
 ```python
+
 import getwowdata as gwd
 from dotenv import load_dotenv
 
@@ -52,7 +54,7 @@ To access any blizzard API you need a Client Id and Client Secret.
 
 *Remember not to commit your wow_api_secret!* You can set wow_api_id and wow_api_secret as environment variables and **get-wow-data** will read these credentials from there.
 
-#### Setting the client id and secret as an environment variable
+### Setting the client id and secret as an environment variable
 1. Install dotenv with pip
 ```
 python -m pip install dotenv
@@ -74,7 +76,134 @@ os.environ['env_key': 'env_value']
 ```
 
 ## API
-See [documentation site]() for the API.
+There are two ways to consume the World of Warcraft APIs search or get methods.
+Both types of methods require similar data like an access token, region, ...
+the WowApi class contains that data. 
+
+### WowApi class
+```{eval-rst}
+.. autoclass:: getwowdata.WowApi
+```
+### Search
+Blizzard provides search for some of their APIs. Meaning that the API can be filtered by any
+of the data's fields. 
+
+Example: Searching for thunderfury. 
+```Python
+from pprint import pprint
+from dotenv import load_dotenv
+from getwowdata import WowApi
+
+load_dotenv()
+
+eu_api = WowApi('eu', 'en_US')
+params = {"name.en_US":"Thunderfury"}
+
+result_item = eu_api.item_search(**params)
+pprint(result_item)
+#prints thunderfury json data. 
+#This returns all items that have thunderfury in their name.
+```
+#### Searches
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.connected_realm_search
+
+```
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.item_search
+
+```
+### Get
+Most WoW APIs don't have search functionality provided by blizzard. This means
+the requests you make to them are restricted to specific fields usually an id.
+
+```python
+us_api = WowApi('us', 'en_US')
+wow_token_data = us_api.get_wow_token()
+
+pprint(wow_token_data)
+#prints:
+# {'_links': {'self': {'href': 'https://us.api.blizzard.com/data/wow/token/?namespace=dynamic-us'}},
+# 'last_updated_timestamp': 1653847530000,
+# 'price': 1656890000} 
+```
+#### Gets
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_connected_realm_index
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_realm
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_auctions
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_profession_index
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_profession_tiers
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_profession_icon
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_profession_tier_details
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_recipe_details
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_recipe_icon
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_item_classes
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_item_subclasses
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_item_set_index
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_item_list
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_item_icon
+
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_wow_token
+
+```
+
 ## Notes on the data
 Visit [https://develop.battle.net/documentation/world-of-warcraft](https://develop.battle.net/documentation/world-of-warcraft) for blizzard official documentation.
 Below are notes that i've gathered from the documentation, reading the returned data, and

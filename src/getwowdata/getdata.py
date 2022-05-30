@@ -26,14 +26,16 @@ class WowApi:
     Attributes:
         region (str): Ex: 'us'. The region where the data will come from.
             See https://develop.battle.net/documentation/guides/regionality-and-apis
-        locale (str): Ex: 'en_US'. The language data will be returned in.
+        locale (str, optional): Ex: 'en_US'. The language data will be returned in.
             See https://develop.battle.net/documentation/world-of-warcraft/guides/localization.
             Default = None.
-        wow_api_id (str): Required to query Blizzard APIs. Can be loaded from
+        wow_api_id (str, optional): Required to recieve an access token to
+            query Blizzard APIs. Can be loaded from
             environment variables. See Setup in readme or
             visit https://develop.battle.net/ and click get started now.
             Default = None.
-        wow_api_secret (str): Required to query Blizzard APIs. Can be loaded from
+        wow_api_secret (str, optional): Required to recieve an access token to
+            query Blizzard APIs. Can be loaded from
             environment variables. See Setup in readme or
             visit https://develop.battle.net/ and click get started now.
             Default = None.
@@ -63,9 +65,9 @@ class WowApi:
         self.locale = locale
         self.wow_api_id = wow_api_id
         self.wow_api_secret = wow_api_secret
-        self.access_token = self.get_access_token()
+        self.access_token = self._get_access_token()
 
-    def get_access_token(
+    def _get_access_token(
         self,
         timeout: int = 30,
     ) -> str:
@@ -141,6 +143,7 @@ class WowApi:
         Searches can filter by fields returned from the API.
         Ex: filerting realms by slug == illidan.
         Below is the data returned from a regular realm query.
+
         {
             "page": 1,
             "pageSize": 58,
@@ -205,7 +208,9 @@ class WowApi:
     def item_search(self, **extra_params: dict) -> dict:
         """Uses the items API's search functionality to make more specific queries.
 
-        Ex: Filter by required level and name
+        Ex: Filter by required level and name. Below is the data returned from some
+        item search.
+
         {
         "page": 1,
         "pageSize": 3,
@@ -221,9 +226,9 @@ class WowApi:
             ...
                 ...
                 name.en_US: Garrosh
-        Pass {"required_level": 30, "name.en_US: "Garrosh"} into **extra_params
-        Additional parameters must be sent as a dictionary where the keys strings and
-        values are strings or ints.
+        To filter by name and level, pass {"required_level": 30, "name.en_US: "Garrosh"}
+        into **extra_params. Additional parameters must be sent as a dictionary where 
+        the keys strings and values are strings or ints.
 
         Args:
             **extra_params (int/str, optional): Returned data can be filtered by any
@@ -584,7 +589,7 @@ class WowApi:
                 Default: 30 seconds.
 
         Returns:
-            A dict where {realm_name: connected_realm_id}
+            A dict like {realm_name: connected_realm_id}
         """
 
         index = {}
