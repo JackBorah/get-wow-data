@@ -80,10 +80,6 @@ There are two ways to consume the World of Warcraft APIs search or get methods.
 Both types of methods require similar data like an access token, region, ...
 the WowApi class contains that data. 
 
-### WowApi class
-```{eval-rst}
-.. autoclass:: getwowdata.WowApi
-```
 ### Search
 Blizzard provides search for some of their APIs. Meaning that the API can be filtered by any
 of the data's fields. 
@@ -135,11 +131,6 @@ pprint(wow_token_data)
 ```
 
 ```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_realm
-
-```
-
-```{eval-rst}
 .. autofunction:: getwowdata.WowApi.get_auctions
 
 ```
@@ -160,16 +151,6 @@ pprint(wow_token_data)
 ```
 
 ```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_profession_tier_details
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_recipe_details
-
-```
-
-```{eval-rst}
 .. autofunction:: getwowdata.WowApi.get_recipe_icon
 
 ```
@@ -186,11 +167,6 @@ pprint(wow_token_data)
 
 ```{eval-rst}
 .. autofunction:: getwowdata.WowApi.get_item_set_index
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_item_list
 
 ```
 
