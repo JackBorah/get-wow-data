@@ -79,7 +79,11 @@ os.environ['env_key': 'env_value']
 There are two ways to consume the World of Warcraft APIs search or get methods.
 Both types of methods require similar data like an access token, region, ...
 the WowApi class contains that data. 
+### WowApi class
+```{eval-rst}
+.. autoclass:: getwowdata.WowApi
 
+```
 ### Search
 Blizzard provides search for some of their APIs. Meaning that the API can be filtered by any
 of the data's fields. 
