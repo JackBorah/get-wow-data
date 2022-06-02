@@ -19,6 +19,7 @@ import re
 import requests
 from getwowdata import exceptions
 from getwowdata.urls import urls
+from getwowdata.helpers import get_id_from_url
 
 class WowApi:
     """Creates an object with access_key, region, and, optionally, locale attributes.
@@ -593,13 +594,12 @@ class WowApi:
         """
 
         index = {}
-        id_pattern = re.compile(r"[\d]+")
 
         response_index = self.connected_realm_search(timeout=timeout)
         realms_list = response_index["results"]
         for connected_realms in realms_list:
-            connected_realm_id = id_pattern.search(connected_realms["key"]["href"])
+            connected_realm_id = get_id_from_url(connected_realms["key"]["href"])
             for realm in connected_realms["data"]["realms"]:
-                index[realm["slug"]] = connected_realm_id.group()
+                index[realm["slug"]] = connected_realm_id
 
         return index
