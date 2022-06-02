@@ -184,6 +184,17 @@ pprint(wow_token_data)
 
 ```
 
+#### Helper Functions
+These functions help in common tasks.
+
+```{eval-rst}
+.. autofunction:: getwowdata.as_gold
+```
+
+```{eval-rst}
+.. autofunction:: getwowdata.get_id_from_url
+```
+
 ## Notes on the data
 Visit [https://develop.battle.net/documentation/world-of-warcraft](https://develop.battle.net/documentation/world-of-warcraft) for blizzard official documentation.
 Below are notes that i've gathered from the documentation, reading the returned data, and
