@@ -74,7 +74,7 @@ os.environ['env_key': 'env_value']
 ```
 
 ## API
-See [documentation site]() for the API.
+See [documentation site](https://get-wow-data.readthedocs.io/en/latest/) for the API.
 ## Notes on the data
 Visit [https://develop.battle.net/documentation/world-of-warcraft](https://develop.battle.net/documentation/world-of-warcraft) for blizzard official documentation.
 Below are notes that i've gathered from the documentation, reading the returned data, and
