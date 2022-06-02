@@ -1,5 +1,4 @@
-"""This module contains functions that preform common tasks in the functions of
-    other modules."""
+"""This module contains functions that preform common tasks."""
 import re
 
 def as_gold(amount: int) -> str:
@@ -9,7 +8,7 @@ def as_gold(amount: int) -> str:
         amount (int): The value of something in WoW's currency.
 
     Returns:
-        A string formatted to WoW's gold, silver, copper currency. 
+        A string formatted to WoW's gold, silver, copper currency.
     """
     if amount >= 0:
         return (f"{int(str(amount)[:-4]):,}g {str(amount)[-4:-2]}s {str(amount)[-2:]}c")
