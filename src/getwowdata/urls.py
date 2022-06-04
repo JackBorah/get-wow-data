@@ -19,4 +19,5 @@ urls = {
         "search_item": "https://{region}.api.blizzard.com/data/wow/search/item",
         "search_media": "https://{region}.api.blizzard.com/data/wow/search/media",
         "icon_test": "https://render.worldofwarcraft.com/",
+        "item_bonuses": 'https://www.raidbots.com/static/data/live/bonuses.json',
     }

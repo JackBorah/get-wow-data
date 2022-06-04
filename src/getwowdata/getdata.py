@@ -614,4 +614,4 @@ class WowApi:
              A json looking dict with nested dicts and/or lists containing data from raidbots.com
         """
 
-        return requests.get('https://www.raidbots.com/static/data/live/bonuses.json').json()
+        return requests.get(urls['item_bonuses']).json()
