@@ -15,7 +15,6 @@ MIT License see LICENSE for more details
 """
 
 import os
-import re
 import requests
 from getwowdata import exceptions
 from getwowdata.urls import urls
@@ -228,7 +227,7 @@ class WowApi:
                 ...
                 name.en_US: Garrosh
         To filter by name and level, pass {"required_level": 30, "name.en_US: "Garrosh"}
-        into **extra_params. Additional parameters must be sent as a dictionary where 
+        into **extra_params. Additional parameters must be sent as a dictionary where
         the keys strings and values are strings or ints.
 
         Args:
@@ -603,3 +602,16 @@ class WowApi:
                 index[realm["slug"]] = connected_realm_id
 
         return index
+
+    def get_item_bonuses(self, timeout=30) -> dict:
+        """Returns a dict containing the item bonuses from raidbots.com.
+
+        Args:
+            timeout (int): How long until the request to the API timesout in seconds.
+                Default: 30 seconds.
+
+        Returns:
+             A json looking dict with nested dicts and/or lists containing data from raidbots.com
+        """
+
+        return requests.get('https://www.raidbots.com/static/data/live/bonuses.json').json()
