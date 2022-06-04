@@ -184,6 +184,10 @@ pprint(wow_token_data)
 
 ```
 
+```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_item_bonuses
+
+```
 #### Helper Functions
 These functions help in common tasks.
 
