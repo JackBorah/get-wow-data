@@ -371,6 +371,8 @@ class WowApi:
             timeout=timeout,
         ).json()
 
+    
+
     def get_profession_icon(self, profession_id, timeout=30) -> bytes:
         """Returns a profession's icon in bytes.
 
@@ -398,10 +400,13 @@ class WowApi:
         return requests.get(icon_response["assets"][0]["value"], timeout=timeout).content
 
     # Includes the categories (weapon mods, belts, ...) and the recipes (id, name) in them
-    def get_profession_tier_recipes(
+    def get_profession_tier_categories(
         self, profession_id, skill_tier_id, timeout=30
     ) -> dict:
         """Returns all crafts from a skill teir.
+
+        Included in this response are the categories like belts, capes, ... and the within them.
+        This is broken down by skill tier (tbc, draenor, shadowlands).
 
         Args:
             profession_id (int): The profession's id. Found in get_profession_index().

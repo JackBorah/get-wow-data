@@ -245,8 +245,8 @@ class TestWowApiMethods(unittest.TestCase):
         self.assertEqual(wow_api.get_profession_icon(1), b"test")
 
     @responses.activate
-    def test_get_profession_tier_recipes(self):
-        """Assert that get_profession_tier_recipes returns the proper value."""
+    def test_get_profession_tier_categories(self):
+        """Assert that test_get_profession_tier_categories returns the proper value."""
         responses.post(
             urls["access_token"].format(region=self.region),
             json={"access_token": "0000000000000000000000000000000000"},

@@ -160,6 +160,11 @@ pprint(wow_token_data)
 ```
 
 ```{eval-rst}
+.. autofunction:: getwowdata.WowApi.get_profession_tier_categories
+
+```
+
+```{eval-rst}
 .. autofunction:: getwowdata.WowApi.get_item_classes
 
 ```
