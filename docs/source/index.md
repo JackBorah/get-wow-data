@@ -79,11 +79,7 @@ os.environ['env_key': 'env_value']
 There are two ways to consume the World of Warcraft APIs search or get methods.
 Both types of methods require similar data like an access token, region, ...
 the WowApi class contains that data. 
-### WowApi class
-```{eval-rst}
-.. autoclass:: getwowdata.WowApi
 
-```
 ### Search
 Blizzard provides search for some of their APIs. Meaning that the API can be filtered by any
 of the data's fields. 
@@ -104,15 +100,6 @@ pprint(result_item)
 #prints thunderfury json data. 
 #This returns all items that have thunderfury in their name.
 ```
-#### Searches
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.connected_realm_search
-
-```
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.item_search
-
-```
 ### Get
 Most WoW APIs don't have search functionality provided by blizzard. This means
 the requests you make to them are restricted to specific fields usually an id.
@@ -127,81 +114,11 @@ pprint(wow_token_data)
 # 'last_updated_timestamp': 1653847530000,
 # 'price': 1656890000} 
 ```
-#### Gets
 
 ```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_connected_realm_index
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_auctions
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_profession_index
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_profession_tiers
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_profession_icon
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_recipe_icon
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_profession_tier_categories
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_item_classes
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_item_subclasses
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_item_set_index
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_item_icon
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_wow_token
-
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.WowApi.get_item_bonuses
-
-```
-#### Helper Functions
-These functions help in common tasks.
-
-```{eval-rst}
-.. autofunction:: getwowdata.as_gold
-```
-
-```{eval-rst}
-.. autofunction:: getwowdata.get_id_from_url
+.. automodule:: getwowdata
+    :imported-members:
+    :members:
 ```
 
 ## Notes on the data
