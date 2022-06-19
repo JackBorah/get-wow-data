@@ -15,6 +15,8 @@ MIT License see LICENSE for more details
 """
 
 import os
+from urllib import response
+from dotenv import load_dotenv
 import requests
 from getwowdata import exceptions
 from getwowdata.urls import urls
@@ -268,6 +270,7 @@ class WowApi:
             params=search_params,
             timeout=timeout,
         )
+        search_response.raise_for_status()
         return search_response.json()
 
     def get_connected_realms_by_id(
@@ -288,13 +291,15 @@ class WowApi:
             "locale": self.locale,
             "access_token": self.access_token,
         }
-        return requests.get(
+        response = requests.get(
             urls["realm"].format(
                 region=self.region, connected_realm_id=connected_realm_id
             ),
             params=realm_params,
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     def get_auctions(self, connected_realm_id, timeout=30) -> dict:
         """Gets all auctions from a realm by its connected_realm_id.
@@ -313,13 +318,16 @@ class WowApi:
             "locale": self.locale,
             "access_token": self.access_token,
         }
-        return requests.get(
+        response = requests.get(
             urls["auction"].format(
                 region=self.region, connected_realm_id=connected_realm_id
             ),
             params=auction_params,
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
+
 
     def get_profession_index(self, timeout=30) -> dict:
         """Gets all professions including their names and ids.
@@ -337,11 +345,13 @@ class WowApi:
             "locale": self.locale,
             "access_token": self.access_token,
         }
-        return requests.get(
+        response = requests.get(
             urls["profession_index"].format(region=self.region),
             params=prof_params,
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     # Includes skill tiers (classic, burning crusade, shadowlands, ...) id
     def get_profession_tiers(self, profession_id, timeout=30) -> dict:
@@ -363,15 +373,16 @@ class WowApi:
             "locale": self.locale,
             "access_token": self.access_token,
         }
-        return requests.get(
+        response = requests.get(
             urls["profession_skill_tier"].format(
                 region=self.region, profession_id=profession_id
             ),
             params=prof_tier_params,
             timeout=timeout,
-        ).json()
+        )
 
-    
+        response.raise_for_status()
+        return response.json()
 
     def get_profession_icon(self, profession_id, timeout=30) -> bytes:
         """Returns a profession's icon in bytes.
@@ -389,15 +400,15 @@ class WowApi:
             "locale": self.locale,
             "access_token": self.access_token,
         }
-        icon_response = requests.get(
+        response = requests.get(
             urls["profession_icon"].format(
                 region=self.region, profession_id=profession_id
             ),
             params=prof_icon_params,
             timeout=timeout,
-        ).json()
-
-        return requests.get(icon_response["assets"][0]["value"], timeout=timeout).content
+        )
+        response.raise_for_status()
+        return requests.get(response.json()["assets"][0]["value"], timeout=timeout).content
 
     # Includes the categories (weapon mods, belts, ...) and the recipes (id, name) in them
     def get_profession_tier_categories(
@@ -422,7 +433,7 @@ class WowApi:
             "locale": self.locale,
             "access_token": self.access_token,
         }
-        return requests.get(
+        response = requests.get(
             urls["profession_tier_detail"].format(
                 region=self.region,
                 profession_id=profession_id,
@@ -430,7 +441,9 @@ class WowApi:
             ),
             params=prof_teir_recipe_params,
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     def get_recipe(self, recipe_id, timeout=30) -> dict:
         """Returns a recipes details by its id.
@@ -443,7 +456,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        return requests.get(
+        response = requests.get(
             urls["recipe_detail"].format(region=self.region, recipe_id=recipe_id),
             params={
                 "namespace": f"static-{self.region}",
@@ -451,7 +464,9 @@ class WowApi:
                 "access_token": self.access_token,
             },
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     def get_recipe_icon(self, recipe_id, timeout=30) -> bytes:
         """Returns a recipes icon in bytes.
@@ -464,7 +479,7 @@ class WowApi:
         Returns:
             The recipe icon in bytes.
         """
-        icon_response = requests.get(
+        response = requests.get(
             urls["repice_icon"].format(region=self.region, recipe_id=recipe_id),
             params={
                 "namespace": f"static-{self.region}",
@@ -472,9 +487,9 @@ class WowApi:
                 "access_token": self.access_token,
             },
             timeout=timeout,
-        ).json()
-
-        return requests.get(icon_response["assets"][0]["value"], timeout=timeout).content
+        )
+        response.raise_for_status()
+        return requests.get(response.json()["assets"][0]["value"], timeout=timeout).content
 
 
     def get_item_classes(self, timeout=30) -> dict:
@@ -488,7 +503,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        return requests.get(
+        response = requests.get(
             urls["item_classes"].format(region=self.region),
             params={
                 "namespace": f"static-{self.region}",
@@ -496,7 +511,9 @@ class WowApi:
                 "access_token": self.access_token,
             },
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     # flasks, vantus runes, ...
     def get_item_subclasses(self, item_class_id, timeout=30) -> dict:
@@ -510,7 +527,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        return requests.get(
+        response = requests.get(
             urls["item_subclass"].format(
                 region=self.region, item_class_id=item_class_id
             ),
@@ -520,7 +537,9 @@ class WowApi:
                 "access_token": self.access_token,
             },
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     def get_item_set_index(self, timeout=30) -> dict:
         """Returns all item sets. Ex: teir sets
@@ -532,7 +551,7 @@ class WowApi:
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
         """
-        return requests.get(
+        response = requests.get(
             urls["item_set_index"].format(region=self.region),
             params={
                 "namespace": f"static-{self.region}",
@@ -540,7 +559,9 @@ class WowApi:
                 "access_token": self.access_token,
             },
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     def get_item_icon(self, item_id, timeout=30) -> bytes:
         """Returns the icon for an item in bytes.
@@ -553,7 +574,7 @@ class WowApi:
         Returns:
             Item icon in bytes.
         """
-        icon_response = requests.get(
+        response = requests.get(
             urls["item_icon"].format(region=self.region, item_id=item_id),
             params={
                 "namespace": f"static-{self.region}",
@@ -561,8 +582,9 @@ class WowApi:
                 "access_token": self.access_token,
             },
             timeout=timeout,
-        ).json()
-        return requests.get(icon_response["assets"][0]["value"], timeout=timeout).content
+        )
+        response.raise_for_status()
+        return requests.get(response.json()["assets"][0]["value"], timeout=timeout).content
 
     def get_wow_token(self, timeout=30) -> dict:
         """Returns the price of the wow token and the timestamp of its last update.
@@ -576,7 +598,7 @@ class WowApi:
             The price is in the format g*sscc where g=gold, s=silver, and c=copper.
             Ex: 123456 = 12g 34s 56c
         """
-        return requests.get(
+        response = requests.get(
             urls["wow_token"].format(region=self.region),
             params={
                 "namespace": f"dynamic-{self.region}",
@@ -584,7 +606,9 @@ class WowApi:
                 "access_token": self.access_token,
             },
             timeout=timeout,
-        ).json()
+        )
+        response.raise_for_status()
+        return response.json()
 
     def get_connected_realm_index(self, timeout=30) -> dict:
         """Returns a dict where {key = Realm name: value = connected realm id, ...}
@@ -619,4 +643,6 @@ class WowApi:
              A json looking dict with nested dicts and/or lists containing data from raidbots.com
         """
 
-        return requests.get(urls['item_bonuses']).json()
+        response = requests.get(urls['item_bonuses'])
+        response.raise_for_status()
+        return response.json()
