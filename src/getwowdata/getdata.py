@@ -184,6 +184,9 @@ class WowApi:
 
         Returns:
         A json looking dict with nested dicts and/or lists containing data from the API.
+        
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         try:
             timeout = extra_params.pop("timeout", 30)
@@ -251,6 +254,9 @@ class WowApi:
 
         Returns:
         A json looking dict with nested dicts and/or lists containing data from the API.
+        
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         try:
             timeout = extra_params.pop("timeout", 30)
@@ -285,6 +291,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         realm_params = {
             "namespace": f"dynamic-{self.region}",
@@ -312,6 +321,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         auction_params = {
             "namespace": f"dynamic-{self.region}",
@@ -339,6 +351,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         prof_params = {
             "namespace": f"static-{self.region}",
@@ -367,6 +382,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         prof_tier_params = {
             "namespace": f"static-{self.region}",
@@ -394,6 +412,9 @@ class WowApi:
 
         Returns:
             The profession's icon in bytes.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         prof_icon_params = {
             "namespace": f"static-{self.region}",
@@ -427,6 +448,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         prof_teir_recipe_params = {
             "namespace": f"static-{self.region}",
@@ -455,6 +479,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         response = requests.get(
             urls["recipe_detail"].format(region=self.region, recipe_id=recipe_id),
@@ -478,6 +505,9 @@ class WowApi:
 
         Returns:
             The recipe icon in bytes.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         response = requests.get(
             urls["repice_icon"].format(region=self.region, recipe_id=recipe_id),
@@ -502,6 +532,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         response = requests.get(
             urls["item_classes"].format(region=self.region),
@@ -526,6 +559,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         response = requests.get(
             urls["item_subclass"].format(
@@ -550,6 +586,9 @@ class WowApi:
 
         Returns:
             A json looking dict with nested dicts and/or lists containing data from the API.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         response = requests.get(
             urls["item_set_index"].format(region=self.region),
@@ -573,6 +612,9 @@ class WowApi:
 
         Returns:
             Item icon in bytes.
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         response = requests.get(
             urls["item_icon"].format(region=self.region, item_id=item_id),
@@ -597,6 +639,9 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             The price is in the format g*sscc where g=gold, s=silver, and c=copper.
             Ex: 123456 = 12g 34s 56c
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
         response = requests.get(
             urls["wow_token"].format(region=self.region),
@@ -619,6 +664,9 @@ class WowApi:
 
         Returns:
             A dict like {realm_name: connected_realm_id}
+            
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
 
         index = {}
@@ -641,6 +689,9 @@ class WowApi:
 
         Returns:
              A json looking dict with nested dicts and/or lists containing data from raidbots.com
+        
+        Raises:
+            requests.exceptions.HTTPError: Shows the problem causing error and url.
         """
 
         response = requests.get(urls['item_bonuses'])
