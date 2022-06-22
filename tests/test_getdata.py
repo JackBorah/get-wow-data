@@ -265,7 +265,7 @@ class TestWowApiMethods(unittest.TestCase):
         )
 
         self.assertEqual(
-            wow_api.get_profession_tier_recipes(1, 2), {"sucess": "Test worked"}
+            wow_api.get_profession_tier_categories(1, 2), {"sucess": "Test worked"}
         )
 
     @responses.activate

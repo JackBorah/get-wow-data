@@ -18,6 +18,8 @@ import os
 from urllib import response
 from dotenv import load_dotenv
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry 
 from getwowdata import exceptions
 from getwowdata.urls import urls
 from getwowdata.helpers import get_id_from_url
@@ -63,11 +65,17 @@ class WowApi:
             wow_api_secret (str, optional): Your client secret from https://develop.battle.net/.
                 Ignore if secret is set as environment variable.
         """
+        retry = Retry(total=5, backoff_factor=0.1)
+        adapter = HTTPAdapter(max_retries=retry)
+        session = requests.Session()
+        session.mount('https://', adapter)
+        session.params = {'locale':locale}
+        self.session = session
         self.region = region
-        self.locale = locale
         self.wow_api_id = wow_api_id
         self.wow_api_secret = wow_api_secret
-        self.access_token = self._get_access_token()
+        access_token = self._get_access_token()
+        session.params['access_token'] = access_token
 
     def _get_access_token(
         self,
@@ -99,7 +107,7 @@ class WowApi:
 
         try:
             auth = (os.environ["wow_api_id"], os.environ["wow_api_secret"])
-            access_token_response = requests.post(
+            access_token_response = self.session.post(
                 urls["access_token"].format(region=self.region),
                 data=token_data,
                 auth=auth,
@@ -124,7 +132,7 @@ class WowApi:
                 ) from NameError
 
             auth = (self.wow_api_id, self.wow_api_secret)
-            access_token_response = requests.post(
+            access_token_response = self.session.post(
                 urls["access_token"].format(region=self.region),
                 data=token_data,
                 auth=auth,
@@ -186,7 +194,8 @@ class WowApi:
         A json looking dict with nested dicts and/or lists containing data from the API.
         
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code. Shows the problem causing error and url.
+            requests.exceptions.ConnectionError: Raised on network problem. 
         """
         try:
             timeout = extra_params.pop("timeout", 30)
@@ -196,17 +205,15 @@ class WowApi:
         conn_realm_search_params = {
             **{
                 "namespace": f"dynamic-{self.region}",
-                "access_token": self.access_token,
-                "locale": self.locale,
             },
             **extra_params,
         }
 
-        response = requests.get(
+        response = self.session.get(
             urls["search_realm"].format(region=self.region),
             params=conn_realm_search_params,
             timeout=timeout,
-        )
+        )       
         response.raise_for_status()
         return response.json()
 
@@ -256,7 +263,7 @@ class WowApi:
         A json looking dict with nested dicts and/or lists containing data from the API.
         
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
         try:
             timeout = extra_params.pop("timeout", 30)
@@ -266,12 +273,11 @@ class WowApi:
         search_params = {
             **{
                 "namespace": f"static-{self.region}",
-                "access_token": self.access_token,
             },
             **extra_params
         }
 
-        search_response = requests.get(
+        search_response = self.session.get(
             urls["search_item"].format(region=self.region),
             params=search_params,
             timeout=timeout,
@@ -293,14 +299,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
         realm_params = {
             "namespace": f"dynamic-{self.region}",
-            "locale": self.locale,
-            "access_token": self.access_token,
+            
+            
         }
-        response = requests.get(
+        response = self.session.get(
             urls["realm"].format(
                 region=self.region, connected_realm_id=connected_realm_id
             ),
@@ -323,14 +329,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
         auction_params = {
             "namespace": f"dynamic-{self.region}",
-            "locale": self.locale,
-            "access_token": self.access_token,
+            
+            
         }
-        response = requests.get(
+        response = self.session.get(
             urls["auction"].format(
                 region=self.region, connected_realm_id=connected_realm_id
             ),
@@ -353,14 +359,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
         prof_params = {
             "namespace": f"static-{self.region}",
-            "locale": self.locale,
-            "access_token": self.access_token,
+            
+            
         }
-        response = requests.get(
+        response = self.session.get(
             urls["profession_index"].format(region=self.region),
             params=prof_params,
             timeout=timeout,
@@ -384,14 +390,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
         prof_tier_params = {
             "namespace": f"static-{self.region}",
-            "locale": self.locale,
-            "access_token": self.access_token,
+            
+            
         }
-        response = requests.get(
+        response = self.session.get(
             urls["profession_skill_tier"].format(
                 region=self.region, profession_id=profession_id
             ),
@@ -414,14 +420,14 @@ class WowApi:
             The profession's icon in bytes.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
         prof_icon_params = {
             "namespace": f"static-{self.region}",
-            "locale": self.locale,
-            "access_token": self.access_token,
+            
+            
         }
-        response = requests.get(
+        response = self.session.get(
             urls["profession_icon"].format(
                 region=self.region, profession_id=profession_id
             ),
@@ -429,7 +435,7 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return requests.get(response.json()["assets"][0]["value"], timeout=timeout).content
+        return self.session.get(response.json()["assets"][0]["value"], timeout=timeout).content
 
     # Includes the categories (weapon mods, belts, ...) and the recipes (id, name) in them
     def get_profession_tier_categories(
@@ -450,14 +456,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
         prof_teir_recipe_params = {
             "namespace": f"static-{self.region}",
-            "locale": self.locale,
-            "access_token": self.access_token,
+            
+            
         }
-        response = requests.get(
+        response = self.session.get(
             urls["profession_tier_detail"].format(
                 region=self.region,
                 profession_id=profession_id,
@@ -481,14 +487,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
-        response = requests.get(
+        response = self.session.get(
             urls["recipe_detail"].format(region=self.region, recipe_id=recipe_id),
             params={
                 "namespace": f"static-{self.region}",
-                "locale": self.locale,
-                "access_token": self.access_token,
+                
+                
             },
             timeout=timeout,
         )
@@ -507,19 +513,19 @@ class WowApi:
             The recipe icon in bytes.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
-        response = requests.get(
+        response = self.session.get(
             urls["repice_icon"].format(region=self.region, recipe_id=recipe_id),
             params={
                 "namespace": f"static-{self.region}",
-                "locale": self.locale,
-                "access_token": self.access_token,
+                
+                
             },
             timeout=timeout,
         )
         response.raise_for_status()
-        return requests.get(response.json()["assets"][0]["value"], timeout=timeout).content
+        return self.session.get(response.json()["assets"][0]["value"], timeout=timeout).content
 
 
     def get_item_classes(self, timeout=30) -> dict:
@@ -534,14 +540,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
-        response = requests.get(
+        response = self.session.get(
             urls["item_classes"].format(region=self.region),
             params={
                 "namespace": f"static-{self.region}",
-                "locale": self.locale,
-                "access_token": self.access_token,
+                
+                
             },
             timeout=timeout,
         )
@@ -561,16 +567,16 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
-        response = requests.get(
+        response = self.session.get(
             urls["item_subclass"].format(
                 region=self.region, item_class_id=item_class_id
             ),
             params={
                 "namespace": f"static-{self.region}",
-                "locale": self.locale,
-                "access_token": self.access_token,
+                
+                
             },
             timeout=timeout,
         )
@@ -588,14 +594,14 @@ class WowApi:
             A json looking dict with nested dicts and/or lists containing data from the API.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
-        response = requests.get(
+        response = self.session.get(
             urls["item_set_index"].format(region=self.region),
             params={
                 "namespace": f"static-{self.region}",
-                "locale": self.locale,
-                "access_token": self.access_token,
+                
+                
             },
             timeout=timeout,
         )
@@ -614,19 +620,19 @@ class WowApi:
             Item icon in bytes.
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
-        response = requests.get(
+        response = self.session.get(
             urls["item_icon"].format(region=self.region, item_id=item_id),
             params={
                 "namespace": f"static-{self.region}",
-                "locale": self.locale,
-                "access_token": self.access_token,
+                
+                
             },
             timeout=timeout,
         )
         response.raise_for_status()
-        return requests.get(response.json()["assets"][0]["value"], timeout=timeout).content
+        return self.session.get(response.json()["assets"][0]["value"], timeout=timeout).content
 
     def get_wow_token(self, timeout=30) -> dict:
         """Returns the price of the wow token and the timestamp of its last update.
@@ -641,14 +647,12 @@ class WowApi:
             Ex: 123456 = 12g 34s 56c
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
-        response = requests.get(
+        response = self.session.get(
             urls["wow_token"].format(region=self.region),
             params={
                 "namespace": f"dynamic-{self.region}",
-                "locale": self.locale,
-                "access_token": self.access_token,
             },
             timeout=timeout,
         )
@@ -666,7 +670,7 @@ class WowApi:
             A dict like {realm_name: connected_realm_id}
             
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
 
         index = {}
@@ -691,9 +695,9 @@ class WowApi:
              A json looking dict with nested dicts and/or lists containing data from raidbots.com
         
         Raises:
-            requests.exceptions.HTTPError: Shows the problem causing error and url.
+            requests.exceptions.HTTPError: Raised on bad status code.  Shows the problem causing error and url.
         """
 
-        response = requests.get(urls['item_bonuses'])
+        response = self.session.get(urls['item_bonuses'], params={'access_token': None, 'locale': None})
         response.raise_for_status()
         return response.json()
