@@ -65,7 +65,7 @@ class WowApi:
             wow_api_secret (str, optional): Your client secret from https://develop.battle.net/.
                 Ignore if secret is set as environment variable.
         """
-        retry = Retry(total=5, backoff_factor=0.1)
+        retry = Retry(total=5, backoff_factor=0.1, status_forcelist=[ 500, 502, 503, 504 ])
         adapter = HTTPAdapter(max_retries=retry)
         session = requests.Session()
         session.mount('https://', adapter)
