@@ -42,10 +42,10 @@ def convert_to_datetime(last_modified:str):
     nums = re.findall(r'\d+', last_modified)
     month_str = re.search(months_pattern, last_modified).group()
     month = months[month_str]
-    day = nums[0]
-    year = nums[1]
-    hour = nums[2]
-    min = nums[3]
-    sec = nums[4]
+    day = int(nums[0])
+    year = int(nums[1])
+    hour = int(nums[2])
+    min = int(nums[3])
+    sec = int(nums[4])
 
     return datetime.datetime(year,month,day,hour=hour,minute=min,second=sec)
