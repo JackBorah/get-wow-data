@@ -215,7 +215,9 @@ class WowApi:
             timeout=timeout,
         )       
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def item_search(self, **extra_params: dict) -> dict:
         """Uses the items API's search functionality to make more specific queries.
@@ -277,13 +279,15 @@ class WowApi:
             **extra_params
         }
 
-        search_response = self.session.get(
+        response = self.session.get(
             urls["search_item"].format(region=self.region),
             params=search_params,
             timeout=timeout,
         )
-        search_response.raise_for_status()
-        return search_response.json()
+        response.raise_for_status()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_connected_realms_by_id(
         self, connected_realm_id: int, timeout: int = 30
@@ -314,7 +318,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_auctions(self, connected_realm_id, timeout=30) -> dict:
         """Gets all auctions from a realm by its connected_realm_id.
@@ -344,7 +350,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
 
     def get_profession_index(self, timeout=30) -> dict:
@@ -372,7 +380,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     # Includes skill tiers (classic, burning crusade, shadowlands, ...) id
     def get_profession_tiers(self, profession_id, timeout=30) -> dict:
@@ -406,7 +416,9 @@ class WowApi:
         )
 
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_profession_icon(self, profession_id, timeout=30) -> bytes:
         """Returns a profession's icon in bytes.
@@ -473,7 +485,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_recipe(self, recipe_id, timeout=30) -> dict:
         """Returns a recipes details by its id.
@@ -499,7 +513,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_recipe_icon(self, recipe_id, timeout=30) -> bytes:
         """Returns a recipes icon in bytes.
@@ -552,7 +568,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     # flasks, vantus runes, ...
     def get_item_subclasses(self, item_class_id, timeout=30) -> dict:
@@ -581,7 +599,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_item_set_index(self, timeout=30) -> dict:
         """Returns all item sets. Ex: teir sets
@@ -606,7 +626,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_item_icon(self, item_id, timeout=30) -> bytes:
         """Returns the icon for an item in bytes.
@@ -657,7 +679,9 @@ class WowApi:
             timeout=timeout,
         )
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        json['last-modified'] = response.headers['last-modified']
+        return json
 
     def get_connected_realm_index(self, timeout=30) -> dict:
         """Returns a dict where {key = Realm name: value = connected realm id, ...}
@@ -700,4 +724,5 @@ class WowApi:
 
         response = self.session.get(urls['item_bonuses'], params={'access_token': None, 'locale': None})
         response.raise_for_status()
-        return response.json()
+        json = response.json()
+        return json

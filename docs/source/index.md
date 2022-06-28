@@ -145,6 +145,9 @@ The item bonus list are the modifiers applied to an item, such as the level its 
 
 Versions of an item with different bonuses can be found on [wowhead](https://www.wowhead.com/). Mouse over select version and pick your desired version from the drop down menu. 
 
+#### Last Modified
+The date when the API data was last modified is returned as the key 'last-modified'.
+
 #### Item context
 Where the item was created. Incomplete list
 | Context 	| Value          	|
