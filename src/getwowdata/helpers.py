@@ -1,5 +1,6 @@
 """This module contains functions that preform common tasks."""
 import re
+import datetime
 
 def as_gold(amount: int) -> str:
     """Formats a integer as n*g nns nnc where n is some number, g = gold, s = silver, and c = copper.
@@ -29,3 +30,22 @@ def get_id_from_url(url: str) -> int:
     """
     pattern = re.compile(r'[\d]+')
     return pattern.search(url).group()
+
+def convert_to_datetime(last_modified:str):
+    """Takes last-modified header and converts it to a datetime object."""
+    #last-modified: Mon, 27 Jun 2022 18:28:56 GMT
+    months = {
+        'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,
+        'Jul':7,'Aug':8,'Sep':9,'Oct':10,'Nov':11,'Dec':12
+    }
+    months_pattern = re.compile(r'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec')
+    nums = re.findall(r'\d+', last_modified)
+    month_str = re.search(months_pattern, last_modified).group()
+    month = months[month_str]
+    day = nums[0]
+    year = nums[1]
+    hour = nums[2]
+    min = nums[3]
+    sec = nums[4]
+
+    return datetime.datetime(year,month,day,hour=hour,minute=min,second=sec)
