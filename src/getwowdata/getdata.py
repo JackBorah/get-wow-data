@@ -216,7 +216,8 @@ class WowApi:
         )       
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        print(response.headers)
+        json['Date'] = response.headers['Date']
         return json
 
     def item_search(self, **extra_params: dict) -> dict:
@@ -286,7 +287,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_connected_realms_by_id(
@@ -319,7 +320,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_auctions(self, connected_realm_id, timeout=30) -> dict:
@@ -351,7 +352,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
 
@@ -381,7 +382,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     # Includes skill tiers (classic, burning crusade, shadowlands, ...) id
@@ -417,7 +418,7 @@ class WowApi:
 
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_profession_icon(self, profession_id, timeout=30) -> bytes:
@@ -486,7 +487,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_recipe(self, recipe_id, timeout=30) -> dict:
@@ -514,7 +515,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_recipe_icon(self, recipe_id, timeout=30) -> bytes:
@@ -569,7 +570,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     # flasks, vantus runes, ...
@@ -600,7 +601,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_item_set_index(self, timeout=30) -> dict:
@@ -627,7 +628,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_item_icon(self, item_id, timeout=30) -> bytes:
@@ -680,7 +681,7 @@ class WowApi:
         )
         response.raise_for_status()
         json = response.json()
-        json['last-modified'] = response.headers['last-modified']
+        json['Date'] = response.headers['Date']
         return json
 
     def get_connected_realm_index(self, timeout=30) -> dict:
@@ -726,3 +727,9 @@ class WowApi:
         response.raise_for_status()
         json = response.json()
         return json
+
+if __name__ == '__main__':
+    load_dotenv()
+
+    x = WowApi('us')
+    print(x.connected_realm_search())

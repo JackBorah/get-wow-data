@@ -108,7 +108,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["search_realm"].format(region=self.region),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -117,7 +117,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.connected_realm_search(), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.connected_realm_search(), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_item_search(self):
@@ -129,7 +129,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["search_item"].format(region=self.region),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -138,7 +138,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.item_search(), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.item_search(), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_connected_realms_by_id(self):
@@ -150,7 +150,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["realm"].format(region=self.region, connected_realm_id=4),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -160,7 +160,7 @@ class TestWowApiMethods(unittest.TestCase):
         )
 
         self.assertEqual(
-            wow_api.get_connected_realms_by_id(4), {"sucess": "Test worked",'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            wow_api.get_connected_realms_by_id(4), {"sucess": "Test worked",'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
 
     @responses.activate
@@ -173,7 +173,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["auction"].format(region=self.region, connected_realm_id=4),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -182,7 +182,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_auctions(4), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_auctions(4), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_profession_index(self):
@@ -194,7 +194,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["profession_index"].format(region=self.region),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -203,7 +203,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_profession_index(), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_profession_index(), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_profession_tiers(self):
@@ -215,7 +215,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["profession_skill_tier"].format(region=self.region, profession_id=1),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -224,7 +224,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_profession_tiers(1), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_profession_tiers(1), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_profession_icon(self):
@@ -262,7 +262,7 @@ class TestWowApiMethods(unittest.TestCase):
                 region=self.region, profession_id=1, skill_tier_id=2
             ),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -272,7 +272,7 @@ class TestWowApiMethods(unittest.TestCase):
         )
 
         self.assertEqual(
-            wow_api.get_profession_tier_categories(1, 2), {"sucess": "Test worked",'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            wow_api.get_profession_tier_categories(1, 2), {"sucess": "Test worked",'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
 
     @responses.activate
@@ -285,7 +285,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["recipe_detail"].format(region=self.region, recipe_id=1),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -294,7 +294,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_recipe(1), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_recipe(1), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_recipe_icon(self):
@@ -330,7 +330,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["item_classes"].format(region=self.region),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -339,7 +339,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_item_classes(), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_item_classes(), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_item_subclasses(self):
@@ -351,7 +351,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["item_subclass"].format(region=self.region, item_class_id=1),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -360,7 +360,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_item_subclasses(1), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_item_subclasses(1), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_item_set_index(self):
@@ -372,7 +372,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["item_set_index"].format(region=self.region),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -381,7 +381,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_item_set_index(), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_item_set_index(), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_item_icon(self):
@@ -417,7 +417,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["wow_token"].format(region=self.region),
             json={"sucess": "Test worked"},
-            headers={'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers={'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -426,7 +426,7 @@ class TestWowApiMethods(unittest.TestCase):
             wow_api_secret="wow_api_secret",
         )
 
-        self.assertEqual(wow_api.get_wow_token(), {"sucess": "Test worked", 'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'})
+        self.assertEqual(wow_api.get_wow_token(), {"sucess": "Test worked", 'Date':'Mon, 27 Jun 2022 18:28:56 GMT'})
 
     @responses.activate
     def test_get_connected_realm_index(self):
@@ -448,7 +448,7 @@ class TestWowApiMethods(unittest.TestCase):
         responses.get(
             urls["search_realm"].format(region=self.region),
             json=search_realm_json,
-            headers = {'last-modified':'Mon, 27 Jun 2022 18:28:56 GMT'}
+            headers = {'Date':'Mon, 27 Jun 2022 18:28:56 GMT'}
         )
         wow_api = WowApi(
             self.region,
@@ -458,7 +458,6 @@ class TestWowApiMethods(unittest.TestCase):
         )
 
         self.assertEqual(wow_api.get_connected_realm_index(), {"Test worked": "1"})
-
 
 if __name__ == "__main__":
     unittest.main()
